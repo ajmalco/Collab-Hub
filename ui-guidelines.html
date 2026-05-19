@@ -1,0 +1,864 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>UI Guidelines</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
+<style>
+  :root {
+    --indigo: #5C68F2;
+    --indigo-deep: #4F5BE8;
+    --indigo-soft: #EEF0FF;
+    --page:   #F4F5F9;
+    --ink:    #2A2F45;
+    --ink-2:  #5A6079;
+    --muted:  #A6ACC2;
+    --line:   #ECEEF3;
+    --green:  #5BC9A6;
+    --red:    #E66A6A;
+    --amber:  #F4C24A;
+    --github: #24292F;
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; height: 100%; }
+  body {
+    font-family: 'Poppins', -apple-system, sans-serif;
+    background: var(--page);
+    color: var(--ink);
+    -webkit-font-smoothing: antialiased;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+  }
+
+  /* ---------- header ---------- */
+  header {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    padding: 14px 24px;
+    background: #fff;
+    border-bottom: 1px solid var(--line);
+    flex-shrink: 0;
+  }
+  .doc-info { display: flex; align-items: center; gap: 12px; flex: 1; min-width: 0; }
+  .doc-icon {
+    width: 36px; height: 36px;
+    border-radius: 9px;
+    background: linear-gradient(135deg, var(--indigo) 0%, var(--indigo-deep) 100%);
+    display: grid; place-items: center;
+    color: #fff;
+    flex-shrink: 0;
+  }
+  .doc-icon svg { width: 18px; height: 18px; stroke: #fff; stroke-width: 2; fill: none; }
+  .doc-meta { display: flex; flex-direction: column; min-width: 0; }
+  .doc-title {
+    font-weight: 600;
+    font-size: 15px;
+    color: var(--ink);
+  }
+  .doc-sub {
+    font-size: 11px;
+    color: var(--muted);
+    margin-top: 2px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .dot { width: 6px; height: 6px; border-radius: 50%; background: var(--green); display: inline-block; }
+  .dot.amber { background: var(--amber); }
+  .dot.muted { background: var(--muted); }
+
+  .btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+    padding: 9px 14px;
+    border-radius: 8px;
+    font-family: inherit;
+    font-size: 13px;
+    font-weight: 500;
+    border: 0;
+    cursor: pointer;
+    text-decoration: none;
+    transition: background .15s;
+    background: transparent;
+    color: var(--ink-2);
+    border: 1px solid var(--line);
+  }
+  .btn:hover { background: var(--page); color: var(--ink); }
+  .btn svg { width: 14px; height: 14px; stroke: currentColor; fill: none; stroke-width: 2; }
+  .btn.primary {
+    background: var(--indigo);
+    color: #fff;
+    border-color: var(--indigo);
+  }
+  .btn.primary:hover { background: var(--indigo-deep); color: #fff; }
+  .btn.subtle { border-color: transparent; }
+  .btn.danger { color: var(--red); border-color: transparent; }
+  .btn.danger:hover { background: #FCEDED; color: var(--red); }
+  .btn:disabled { opacity: 0.5; cursor: not-allowed; }
+
+  /* ---------- iframe area ---------- */
+  .frame-wrap {
+    flex: 1;
+    position: relative;
+    background: var(--page);
+    min-height: 0;
+  }
+  iframe {
+    width: 100%;
+    height: 100%;
+    border: 0;
+    display: block;
+    background: #fff;
+  }
+  .loading {
+    position: absolute;
+    inset: 0;
+    display: grid;
+    place-items: center;
+    background: var(--page);
+    z-index: 2;
+    transition: opacity .25s;
+  }
+  .loading.hidden { opacity: 0; pointer-events: none; }
+  .spinner {
+    width: 36px; height: 36px;
+    border-radius: 50%;
+    border: 3px solid #E2E5F0;
+    border-top-color: var(--indigo);
+    animation: spin 0.7s linear infinite;
+  }
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  /* ---------- toast ---------- */
+  .toast {
+    position: fixed;
+    bottom: 28px;
+    left: 50%;
+    transform: translate(-50%, 20px);
+    background: var(--ink);
+    color: #fff;
+    padding: 11px 18px;
+    border-radius: 10px;
+    font-size: 13px;
+    font-weight: 500;
+    opacity: 0;
+    pointer-events: none;
+    transition: all 0.25s;
+    z-index: 999;
+    display: flex; align-items: center; gap: 8px;
+    box-shadow: 0 12px 30px -10px rgba(40,45,75,0.4);
+  }
+  .toast.on { opacity: 1; transform: translate(-50%, 0); }
+  .toast.error { background: var(--red); }
+
+  /* ---------- modal ---------- */
+  .modal-backdrop {
+    position: fixed;
+    inset: 0;
+    background: rgba(20, 22, 38, 0.5);
+    backdrop-filter: blur(4px);
+    display: none;
+    z-index: 100;
+    align-items: center;
+    justify-content: center;
+    padding: 30px;
+  }
+  .modal-backdrop.on { display: flex; }
+  .modal {
+    background: #fff;
+    border-radius: 18px;
+    width: 100%;
+    max-width: 560px;
+    max-height: calc(100vh - 60px);
+    overflow: auto;
+    box-shadow: 0 40px 80px -20px rgba(20, 22, 38, 0.4);
+  }
+  .modal-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 22px 24px 14px;
+  }
+  .modal-head h2 {
+    margin: 0;
+    font-size: 17px;
+    font-weight: 600;
+    letter-spacing: -0.01em;
+  }
+  .close {
+    background: transparent;
+    border: 0;
+    color: var(--muted);
+    cursor: pointer;
+    padding: 4px;
+    border-radius: 6px;
+    display: grid;
+    place-items: center;
+  }
+  .close:hover { background: var(--page); color: var(--ink); }
+  .close svg { width: 18px; height: 18px; }
+
+  /* tabs */
+  .tabs {
+    display: flex;
+    gap: 4px;
+    padding: 0 24px;
+    border-bottom: 1px solid var(--line);
+  }
+  .tab {
+    background: transparent;
+    border: 0;
+    padding: 10px 14px;
+    font-family: inherit;
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--ink-2);
+    cursor: pointer;
+    border-bottom: 2px solid transparent;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    transition: all 0.15s;
+    margin-bottom: -1px;
+  }
+  .tab:hover { color: var(--ink); }
+  .tab.on {
+    color: var(--indigo);
+    border-bottom-color: var(--indigo);
+  }
+  .tab svg { width: 14px; height: 14px; fill: none; stroke: currentColor; stroke-width: 2; }
+
+  .panel { padding: 22px 24px; display: none; }
+  .panel.on { display: block; }
+
+  .field { margin-bottom: 14px; }
+  .field label {
+    display: block;
+    font-size: 12px;
+    font-weight: 500;
+    color: var(--ink-2);
+    margin-bottom: 6px;
+  }
+  .field input[type="text"],
+  .field input[type="url"] {
+    width: 100%;
+    padding: 10px 12px;
+    border-radius: 9px;
+    border: 1px solid var(--line);
+    font-family: 'JetBrains Mono', ui-monospace, monospace;
+    font-size: 12px;
+    color: var(--ink);
+    background: var(--page);
+    transition: border-color 0.15s, background 0.15s;
+  }
+  .field input[type="text"]:focus,
+  .field input[type="url"]:focus {
+    outline: none;
+    border-color: var(--indigo);
+    background: #fff;
+  }
+  .field .hint {
+    margin-top: 6px;
+    font-size: 11px;
+    color: var(--muted);
+    line-height: 1.5;
+  }
+
+  .toggle-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 10px 12px;
+    border-radius: 9px;
+    background: var(--page);
+    margin-bottom: 14px;
+  }
+  .toggle-row .lbl { font-size: 13px; font-weight: 500; color: var(--ink); }
+  .toggle-row .sub { font-size: 11px; color: var(--muted); margin-top: 2px; }
+
+  .switch {
+    position: relative;
+    width: 40px;
+    height: 22px;
+    background: #D9DCE6;
+    border-radius: 999px;
+    cursor: pointer;
+    transition: background .15s;
+    flex-shrink: 0;
+  }
+  .switch::after {
+    content: '';
+    position: absolute;
+    top: 2px; left: 2px;
+    width: 18px; height: 18px;
+    border-radius: 50%;
+    background: #fff;
+    transition: transform .15s;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.15);
+  }
+  .switch.on { background: var(--indigo); }
+  .switch.on::after { transform: translateX(18px); }
+
+  /* drop zone */
+  .drop {
+    border: 2px dashed var(--line);
+    border-radius: 12px;
+    padding: 28px 20px;
+    text-align: center;
+    cursor: pointer;
+    transition: all 0.15s;
+    background: var(--page);
+  }
+  .drop:hover, .drop.over {
+    border-color: var(--indigo);
+    background: var(--indigo-soft);
+  }
+  .drop .ic {
+    width: 38px; height: 38px;
+    margin: 0 auto 10px;
+    border-radius: 10px;
+    background: #fff;
+    display: grid; place-items: center;
+    color: var(--indigo);
+    box-shadow: 0 2px 6px -2px rgba(40,45,75,.1);
+  }
+  .drop .ic svg { width: 18px; height: 18px; }
+  .drop .t { font-size: 13px; font-weight: 500; color: var(--ink); }
+  .drop .s { font-size: 11px; color: var(--muted); margin-top: 4px; }
+
+  .file-row {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 11px 14px;
+    background: var(--page);
+    border-radius: 9px;
+    margin-top: 14px;
+  }
+  .file-row .nm { font-size: 13px; font-weight: 500; color: var(--ink); flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .file-row .sz { font-size: 11px; color: var(--muted); font-family: 'JetBrains Mono', monospace; }
+
+  .modal-foot {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    padding: 14px 24px 22px;
+    border-top: 1px solid var(--line);
+  }
+  .modal-foot .left { display: flex; gap: 8px; }
+  .modal-foot .right { display: flex; gap: 8px; }
+
+  /* status pill */
+  .source-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 2px 8px;
+    border-radius: 30px;
+    background: var(--indigo-soft);
+    color: var(--indigo);
+    font-size: 10px;
+    font-weight: 600;
+    letter-spacing: 0.4px;
+    text-transform: uppercase;
+  }
+  .source-pill.github { background: #F0F1F3; color: var(--github); }
+  .source-pill.upload { background: #FDF4DA; color: #8C7619; }
+</style>
+</head>
+<body>
+
+  <header>
+    <div class="doc-info">
+      <div class="doc-icon">
+        <svg viewBox="0 0 24 24"><path d="M3 6l3 12 6-3 6 3 3-12-9 4z"/></svg>
+      </div>
+      <div class="doc-meta">
+        <div class="doc-title">UI Guidelines</div>
+        <div class="doc-sub">
+          <span class="dot" id="statusDot"></span>
+          <span id="statusText">Loading…</span>
+          <span class="source-pill" id="sourcePill" style="display:none">DEFAULT</span>
+        </div>
+      </div>
+    </div>
+    <button class="btn" id="syncBtn" title="Sync from GitHub" style="display:none">
+      <svg viewBox="0 0 24 24"><path d="M3 12a9 9 0 0 1 15.5-6.4L21 8M21 3v5h-5M21 12a9 9 0 0 1-15.5 6.4L3 16M3 21v-5h5"/></svg>
+      Sync
+    </button>
+    <button class="btn primary" id="configBtn">
+      <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3h0a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8v0a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"/></svg>
+      Configure
+    </button>
+  </header>
+
+  <div class="frame-wrap">
+    <div class="loading" id="loading"><div class="spinner"></div></div>
+    <iframe id="frame" title="UI Guidelines" sandbox="allow-same-origin allow-scripts allow-popups allow-forms"></iframe>
+  </div>
+
+  <!-- Toast -->
+  <div class="toast" id="toast"></div>
+
+  <!-- Configure modal -->
+  <div class="modal-backdrop" id="modalBackdrop">
+    <div class="modal">
+      <div class="modal-head">
+        <h2>Configure UI Guidelines source</h2>
+        <button class="close" id="closeBtn">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 6L6 18M6 6l12 12"/></svg>
+        </button>
+      </div>
+
+      <div class="tabs">
+        <button class="tab on" data-tab="github">
+          <svg viewBox="0 0 24 24" fill="currentColor" stroke="none"><path d="M12 2a10 10 0 0 0-3.16 19.49c.5.09.68-.22.68-.48v-1.68c-2.78.6-3.37-1.34-3.37-1.34-.45-1.16-1.11-1.46-1.11-1.46-.9-.62.07-.6.07-.6 1 .07 1.53 1.03 1.53 1.03.89 1.52 2.34 1.08 2.9.83.1-.65.35-1.08.63-1.33-2.22-.25-4.56-1.11-4.56-4.94 0-1.1.39-1.99 1.03-2.69-.1-.25-.45-1.27.1-2.64 0 0 .84-.27 2.75 1.02a9.5 9.5 0 0 1 5 0c1.91-1.29 2.75-1.02 2.75-1.02.55 1.37.2 2.39.1 2.64.64.7 1.03 1.59 1.03 2.69 0 3.84-2.34 4.69-4.57 4.93.36.31.68.92.68 1.85v2.74c0 .27.18.58.69.48A10 10 0 0 0 12 2z"/></svg>
+          GitHub
+        </button>
+        <button class="tab" data-tab="upload">
+          <svg viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M17 8l-5-5-5 5M12 3v12"/></svg>
+          Upload
+        </button>
+      </div>
+
+      <!-- GitHub panel -->
+      <div class="panel on" data-panel="github">
+        <div class="field">
+          <label for="repoUrl">Raw file URL or GitHub blob URL</label>
+          <input
+            type="url"
+            id="repoUrl"
+            placeholder="https://github.com/owner/repo/blob/main/design-system.html"
+            spellcheck="false"
+            autocomplete="off"
+          />
+          <div class="hint">
+            Paste either a <strong>github.com/.../blob/...</strong> URL (auto-converted to raw) or a
+            <strong>raw.githubusercontent.com</strong> URL directly. For private repos, append
+            <code>?token=&lt;PAT&gt;</code> — token stays in your browser only.
+          </div>
+        </div>
+
+        <div class="toggle-row">
+          <div>
+            <div class="lbl">Auto-sync on open</div>
+            <div class="sub">Re-fetch from GitHub every time UI Guidelines is opened.</div>
+          </div>
+          <div class="switch on" id="autoSyncToggle"></div>
+        </div>
+
+        <div class="hint" id="githubStatus" style="margin-top:8px"></div>
+      </div>
+
+      <!-- Upload panel -->
+      <div class="panel" data-panel="upload">
+        <div class="drop" id="drop">
+          <div class="ic">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M17 8l-5-5-5 5M12 3v12"/></svg>
+          </div>
+          <div class="t">Drop your HTML file here, or click to choose</div>
+          <div class="s">Single .html file • stored locally in your browser</div>
+          <input type="file" id="fileInput" accept=".html,.htm,text/html" style="display:none" />
+        </div>
+        <div id="fileChosen" style="display:none">
+          <div class="file-row">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#5C68F2" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6"/></svg>
+            <div class="nm" id="fileName">—</div>
+            <div class="sz" id="fileSize">0 KB</div>
+          </div>
+        </div>
+        <div class="hint" id="uploadStatus" style="margin-top:10px"></div>
+      </div>
+
+      <div class="modal-foot">
+        <div class="left">
+          <button class="btn danger" id="resetBtn" title="Reset to bundled default">
+            Reset to default
+          </button>
+        </div>
+        <div class="right">
+          <button class="btn subtle" id="cancelBtn">Cancel</button>
+          <button class="btn primary" id="saveBtn">Save &amp; apply</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+<script>
+/* ─────────────────────────────────────────────────────────────────────
+   UI Guidelines — wrapper module
+   Loads a design-system HTML document from one of three sources:
+     1. GitHub (auto-sync on each open, or manual sync via header button)
+     2. Manual upload (stored in localStorage as text)
+     3. Bundled default (modules/ui-guidelines-default.html)
+
+   Source priority on load:
+     - If source = 'github' and a URL is configured → fetch + render
+     - If source = 'upload' and content is cached → render cached
+     - Otherwise → render bundled default
+   ───────────────────────────────────────────────────────────────────── */
+
+const LS = {
+  source:         'uig.source',          // 'github' | 'upload' | 'default'
+  ghUrl:          'uig.gh.url',
+  ghAutoSync:     'uig.gh.autoSync',
+  ghLastSyncAt:   'uig.gh.lastSyncAt',
+  content:        'uig.content',         // cached HTML for github/upload modes
+  uploadName:     'uig.upload.name',
+  defaultCached:  'uig.default.cached',  // cached bundled default (1MB) for instant reopens
+};
+
+const $ = (id) => document.getElementById(id);
+const frame      = $('frame');
+const loading    = $('loading');
+const statusDot  = $('statusDot');
+const statusText = $('statusText');
+const sourcePill = $('sourcePill');
+const syncBtn    = $('syncBtn');
+
+/* current Blob URL — we revoke the previous one before assigning a new
+   src so memory doesn't pile up after repeated reloads. */
+let currentBlobUrl = null;
+
+function setStatus(text, kind = 'ok', sourceLabel = '') {
+  statusText.textContent = text;
+  statusDot.className = 'dot';
+  if (kind === 'amber') statusDot.classList.add('amber');
+  if (kind === 'muted') statusDot.classList.add('muted');
+  if (sourceLabel) {
+    sourcePill.textContent = sourceLabel;
+    sourcePill.className = 'source-pill ' + sourceLabel.toLowerCase();
+    sourcePill.style.display = '';
+  } else {
+    sourcePill.style.display = 'none';
+  }
+}
+
+function toast(msg, isError = false) {
+  const t = $('toast');
+  t.textContent = msg;
+  t.classList.toggle('error', isError);
+  t.classList.add('on');
+  clearTimeout(toast._t);
+  toast._t = setTimeout(() => t.classList.remove('on'), 2600);
+}
+
+/* ---------------- iframe rendering ---------------- */
+
+function renderHtmlString(html) {
+  if (currentBlobUrl) {
+    try { URL.revokeObjectURL(currentBlobUrl); } catch (_) {}
+  }
+  const blob = new Blob([html], { type: 'text/html;charset=utf-8' });
+  currentBlobUrl = URL.createObjectURL(blob);
+  frame.src = currentBlobUrl;
+}
+
+function renderDefaultFile() {
+  if (currentBlobUrl) {
+    try { URL.revokeObjectURL(currentBlobUrl); } catch (_) {}
+    currentBlobUrl = null;
+  }
+  frame.src = 'ui-guidelines-default.html';
+}
+
+frame.addEventListener('load', () => loading.classList.remove('on') || loading.classList.add('hidden'));
+
+/* ---------------- URL helpers ---------------- */
+
+/* Convert a github.com/.../blob/... URL to its raw.githubusercontent.com
+   equivalent. Pass through raw URLs unchanged. Returns null for anything
+   that isn't a valid GitHub source. */
+function toRawGithubUrl(input) {
+  const url = String(input || '').trim();
+  if (!url) return null;
+  if (/^https:\/\/raw\.githubusercontent\.com\//.test(url)) return url;
+
+  // Match: https://github.com/<owner>/<repo>/blob/<branch>/<path>
+  const m = url.match(/^https:\/\/github\.com\/([^\/]+)\/([^\/]+)\/blob\/([^\/]+)\/(.+?)(?:\?.*)?$/);
+  if (m) return `https://raw.githubusercontent.com/${m[1]}/${m[2]}/${m[3]}/${m[4]}`;
+
+  return null;
+}
+
+/* ---------------- GitHub sync ---------------- */
+
+async function syncFromGithub(showToast = true) {
+  const stored = localStorage.getItem(LS.ghUrl) || '';
+  const rawUrl = toRawGithubUrl(stored);
+  if (!rawUrl) {
+    setStatus('No valid GitHub URL configured', 'amber');
+    return false;
+  }
+  setStatus('Syncing from GitHub…', 'muted', 'GITHUB');
+  loading.classList.remove('hidden');
+  try {
+    const res = await fetch(rawUrl, { cache: 'no-store' });
+    if (!res.ok) throw new Error('HTTP ' + res.status);
+    const html = await res.text();
+    if (!html || html.length < 50) throw new Error('Response too small to be HTML');
+
+    localStorage.setItem(LS.content, html);
+    localStorage.setItem(LS.source, 'github');
+    localStorage.setItem(LS.ghLastSyncAt, new Date().toISOString());
+
+    renderHtmlString(html);
+    const when = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+    setStatus('GitHub · synced ' + when, 'ok', 'GITHUB');
+    if (showToast) toast('Synced from GitHub');
+    return true;
+  } catch (err) {
+    loading.classList.add('hidden');
+    setStatus('Sync failed: ' + err.message, 'amber', 'GITHUB');
+    if (showToast) toast('Sync failed: ' + err.message, true);
+    return false;
+  }
+}
+
+/* ---------------- initial load ---------------- */
+
+async function init() {
+  const source = localStorage.getItem(LS.source) || 'default';
+
+  if (source === 'github') {
+    syncBtn.style.display = '';
+    const autoSync = localStorage.getItem(LS.ghAutoSync) !== '0';
+    if (autoSync) {
+      const ok = await syncFromGithub(false);
+      if (!ok) {
+        // Fall back to last cached content if available
+        const cached = localStorage.getItem(LS.content);
+        if (cached) {
+          renderHtmlString(cached);
+          const last = localStorage.getItem(LS.ghLastSyncAt);
+          setStatus('GitHub · cached (sync failed)', 'amber', 'GITHUB');
+        }
+      }
+    } else {
+      const cached = localStorage.getItem(LS.content);
+      if (cached) {
+        renderHtmlString(cached);
+        setStatus('GitHub · cached (auto-sync off)', 'ok', 'GITHUB');
+      } else {
+        // Configured but nothing cached and auto-sync off — sync once.
+        await syncFromGithub(false);
+      }
+    }
+    return;
+  }
+
+  if (source === 'upload') {
+    const cached = localStorage.getItem(LS.content);
+    if (cached) {
+      renderHtmlString(cached);
+      const name = localStorage.getItem(LS.uploadName) || 'uploaded.html';
+      setStatus('Local upload · ' + name, 'ok', 'UPLOAD');
+      return;
+    }
+  }
+
+  // Default — try cache first, fall back to fetch + cache the bundled file.
+  // The bundled file is ~1MB so the first open is slow; every open after
+  // hits localStorage and renders via Blob URL instantly. The cache is
+  // cleared by the Reset-to-default button below.
+  const cachedDefault = localStorage.getItem(LS.defaultCached);
+  if (cachedDefault) {
+    renderHtmlString(cachedDefault);
+    setStatus('Bundled default · cached', 'ok', 'DEFAULT');
+    return;
+  }
+
+  loading.classList.remove('hidden');
+  try {
+    const res = await fetch('ui-guidelines-default.html');
+    if (!res.ok) throw new Error('HTTP ' + res.status);
+    const html = await res.text();
+    renderHtmlString(html);
+    // Best-effort cache write. If quota fails (rare at 1MB), the module
+    // still works — we just don't get the speedup on next open.
+    try { localStorage.setItem(LS.defaultCached, html); } catch (_) {}
+    setStatus('Bundled default', 'ok', 'DEFAULT');
+  } catch (_) {
+    // fetch() of relative URLs is blocked on file:// in some browsers.
+    // Fall back to direct iframe load — slower but always works.
+    renderDefaultFile();
+    setStatus('Bundled default', 'ok', 'DEFAULT');
+  }
+}
+
+/* ---------------- header buttons ---------------- */
+
+syncBtn.addEventListener('click', () => syncFromGithub(true));
+
+/* ─────────────── Configure modal ─────────────── */
+
+const backdrop = $('modalBackdrop');
+const repoUrlInput = $('repoUrl');
+const autoSyncToggle = $('autoSyncToggle');
+const drop = $('drop');
+const fileInput = $('fileInput');
+const fileChosen = $('fileChosen');
+const fileNameEl = $('fileName');
+const fileSizeEl = $('fileSize');
+const uploadStatus = $('uploadStatus');
+const githubStatus = $('githubStatus');
+
+let pendingUpload = null;  // { name, size, content } until user clicks Save
+
+function openModal() {
+  // Populate from current state
+  repoUrlInput.value = localStorage.getItem(LS.ghUrl) || '';
+  autoSyncToggle.classList.toggle('on', localStorage.getItem(LS.ghAutoSync) !== '0');
+  pendingUpload = null;
+  fileChosen.style.display = 'none';
+  uploadStatus.textContent = '';
+
+  // GitHub status line
+  const last = localStorage.getItem(LS.ghLastSyncAt);
+  if (last) {
+    githubStatus.innerHTML = 'Last synced: <strong>' + new Date(last).toLocaleString() + '</strong>';
+  } else {
+    githubStatus.textContent = '';
+  }
+
+  // Default tab based on current source
+  const src = localStorage.getItem(LS.source) || 'default';
+  showTab(src === 'upload' ? 'upload' : 'github');
+
+  backdrop.classList.add('on');
+}
+function closeModal() { backdrop.classList.remove('on'); }
+
+$('configBtn').addEventListener('click', openModal);
+$('closeBtn').addEventListener('click', closeModal);
+$('cancelBtn').addEventListener('click', closeModal);
+backdrop.addEventListener('click', (e) => { if (e.target === backdrop) closeModal(); });
+
+/* tabs */
+function showTab(key) {
+  document.querySelectorAll('.tab').forEach(t => t.classList.toggle('on', t.dataset.tab === key));
+  document.querySelectorAll('.panel').forEach(p => p.classList.toggle('on', p.dataset.panel === key));
+}
+document.querySelectorAll('.tab').forEach(t => t.addEventListener('click', () => showTab(t.dataset.tab)));
+
+/* auto-sync toggle */
+autoSyncToggle.addEventListener('click', () => autoSyncToggle.classList.toggle('on'));
+
+/* file picker + drag-drop */
+drop.addEventListener('click', () => fileInput.click());
+fileInput.addEventListener('change', (e) => handleFile(e.target.files && e.target.files[0]));
+;['dragenter', 'dragover'].forEach(ev => drop.addEventListener(ev, (e) => {
+  e.preventDefault(); e.stopPropagation();
+  drop.classList.add('over');
+}));
+;['dragleave', 'drop'].forEach(ev => drop.addEventListener(ev, (e) => {
+  e.preventDefault(); e.stopPropagation();
+  drop.classList.remove('over');
+}));
+drop.addEventListener('drop', (e) => handleFile(e.dataTransfer && e.dataTransfer.files && e.dataTransfer.files[0]));
+
+function handleFile(file) {
+  if (!file) return;
+  if (!/\.html?$/i.test(file.name) && file.type !== 'text/html') {
+    uploadStatus.style.color = 'var(--red)';
+    uploadStatus.textContent = 'Please choose an .html or .htm file.';
+    return;
+  }
+  const reader = new FileReader();
+  reader.onload = () => {
+    pendingUpload = { name: file.name, size: file.size, content: String(reader.result) };
+    fileNameEl.textContent = file.name;
+    fileSizeEl.textContent = formatSize(file.size);
+    fileChosen.style.display = '';
+    uploadStatus.style.color = '';
+    uploadStatus.textContent = 'Ready to save.';
+  };
+  reader.onerror = () => {
+    uploadStatus.style.color = 'var(--red)';
+    uploadStatus.textContent = 'Couldn’t read that file.';
+  };
+  reader.readAsText(file);
+}
+
+function formatSize(b) {
+  if (b < 1024) return b + ' B';
+  if (b < 1024 * 1024) return (b / 1024).toFixed(1) + ' KB';
+  return (b / (1024 * 1024)).toFixed(2) + ' MB';
+}
+
+/* save & apply */
+$('saveBtn').addEventListener('click', async () => {
+  // Which tab is active?
+  const activeTab = document.querySelector('.tab.on').dataset.tab;
+
+  if (activeTab === 'github') {
+    const raw = repoUrlInput.value.trim();
+    const rawUrl = toRawGithubUrl(raw);
+    if (!rawUrl) {
+      githubStatus.style.color = 'var(--red)';
+      githubStatus.textContent = 'That doesn’t look like a GitHub raw or blob URL.';
+      return;
+    }
+    localStorage.setItem(LS.ghUrl, raw);
+    localStorage.setItem(LS.ghAutoSync, autoSyncToggle.classList.contains('on') ? '1' : '0');
+    localStorage.setItem(LS.source, 'github');
+    syncBtn.style.display = '';
+    closeModal();
+    await syncFromGithub(true);
+    return;
+  }
+
+  if (activeTab === 'upload') {
+    if (!pendingUpload) {
+      uploadStatus.style.color = 'var(--red)';
+      uploadStatus.textContent = 'Pick a file first.';
+      return;
+    }
+    try {
+      localStorage.setItem(LS.content, pendingUpload.content);
+      localStorage.setItem(LS.uploadName, pendingUpload.name);
+      localStorage.setItem(LS.source, 'upload');
+      syncBtn.style.display = 'none';
+      renderHtmlString(pendingUpload.content);
+      setStatus('Local upload · ' + pendingUpload.name, 'ok', 'UPLOAD');
+      toast('Uploaded ' + pendingUpload.name);
+      closeModal();
+    } catch (err) {
+      uploadStatus.style.color = 'var(--red)';
+      // QuotaExceededError surfaces here when the file is larger than localStorage allows
+      uploadStatus.textContent = 'Storage error: ' + err.message + ' (file may be too large)';
+    }
+    return;
+  }
+});
+
+/* reset */
+$('resetBtn').addEventListener('click', () => {
+  if (!confirm('Reset to the bundled default? This clears your saved GitHub URL and uploaded file.')) return;
+  [LS.source, LS.ghUrl, LS.ghAutoSync, LS.ghLastSyncAt, LS.content, LS.uploadName, LS.defaultCached]
+    .forEach(k => localStorage.removeItem(k));
+  syncBtn.style.display = 'none';
+  renderDefaultFile();
+  setStatus('Bundled default', 'ok', 'DEFAULT');
+  closeModal();
+  toast('Reset to default');
+});
+
+/* keyboard: ESC closes modal */
+document.addEventListener('keydown', (e) => {
+  if (e.key === 'Escape' && backdrop.classList.contains('on')) closeModal();
+});
+
+/* ---------------- boot ---------------- */
+init();
+</script>
+
+</body>
+</html>
