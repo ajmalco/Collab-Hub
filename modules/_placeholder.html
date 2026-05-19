@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Module</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet" />
+<style>
+  :root {
+    --indigo:#5C68F2;
+    --page:#F4F5F9;
+    --ink:#2A2F45;
+    --ink-2:#5A6079;
+    --muted:#A6ACC2;
+    --panel:#fff;
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; height: 100%; }
+  body {
+    font-family: 'Poppins', -apple-system, sans-serif;
+    background: var(--page);
+    color: var(--ink);
+    display: grid;
+    place-items: center;
+    -webkit-font-smoothing: antialiased;
+  }
+  .card {
+    background: var(--panel);
+    border-radius: 22px;
+    padding: 48px 60px;
+    text-align: center;
+    box-shadow: 0 30px 60px -30px rgba(40,45,75,0.18);
+    max-width: 520px;
+  }
+  .badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 6px 14px;
+    border-radius: 30px;
+    background: #EEF0FF;
+    color: var(--indigo);
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.8px;
+    text-transform: uppercase;
+    margin-bottom: 18px;
+  }
+  .badge::before {
+    content: '';
+    width: 6px; height: 6px;
+    border-radius: 50%;
+    background: var(--indigo);
+  }
+  h1 {
+    margin: 0 0 10px;
+    font-size: 28px;
+    font-weight: 600;
+    letter-spacing: -0.01em;
+  }
+  p {
+    margin: 0;
+    color: var(--ink-2);
+    font-size: 14px;
+    line-height: 1.6;
+  }
+  .hint {
+    margin-top: 22px;
+    font-size: 12px;
+    color: var(--muted);
+    font-family: 'JetBrains Mono', ui-monospace, monospace;
+    background: #F7F8FC;
+    padding: 8px 14px;
+    border-radius: 8px;
+    display: inline-block;
+  }
+</style>
+</head>
+<body>
+  <div class="card">
+    <div class="badge">Module</div>
+    <h1 id="title">Untitled</h1>
+    <p id="subtitle">Drop your HTML, doc viewer, or external embed here.</p>
+    <div class="hint" id="hint">modules/&lt;name&gt;.html</div>
+  </div>
+
+<script>
+  /* Each placeholder file calls this to brand itself. */
+  window.setModule = function (name, subtitle) {
+    document.title = name;
+    document.getElementById('title').textContent = name;
+    if (subtitle) document.getElementById('subtitle').textContent = subtitle;
+    document.getElementById('hint').textContent =
+      'modules/' + name.toLowerCase().replace(/\s+/g, '-') + '.html';
+  };
+</script>
+</body>
+</html>

@@ -1,0 +1,2826 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Room Scheduler</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg:        #F5F6F8;
+    --panel:     #FFFFFF;
+    --ink:       #0E1B2E;
+    --ink-soft:  #1E2A3D;
+    --muted:     #7C8598;
+    --line:      #E6E8EC;
+    --line-soft: #EEF0F3;
+    --navy:      #0B1F3A;
+    --accent:    #E56B3F;
+    --accent-2:  #D85A2E;
+    --accent-soft:#FDEFE8;
+    --accent-glow:rgba(229,107,63,0.18);
+    --locked:    #B64535;
+    --booked:    #1F3556;
+  }
+
+  * { box-sizing: border-box; }
+  html, body { margin: 0; padding: 0; height: 100%; }
+  body {
+    font-family: 'Inter', -apple-system, system-ui, sans-serif;
+    background: var(--bg);
+    color: var(--ink);
+    overflow: hidden;
+    -webkit-font-smoothing: antialiased;
+    user-select: none;
+  }
+
+  .app {
+    height: 100vh;
+    width: 100vw;
+    display: grid;
+    grid-template-rows: auto 1fr;
+  }
+
+  /* ---- TOP BAR ---- */
+  .topbar {
+    padding: 18px 28px 12px;
+    display: flex;
+    align-items: center;
+    gap: 18px;
+  }
+  .page-title {
+    font-size: 22px;
+    font-weight: 800;
+    letter-spacing: -0.02em;
+    color: var(--ink);
+    margin: 0;
+    padding-right: 18px;
+    border-right: 1px solid var(--line);
+  }
+
+  /* date filter — single calendar icon */
+  .date-filter {
+    display: flex;
+    align-items: center;
+    gap: 2px;
+    background: #fff;
+    border: 1px solid var(--line);
+    border-radius: 10px;
+    padding: 4px;
+  }
+  .date-btn {
+    width: 32px; height: 32px;
+    border-radius: 7px;
+    border: none;
+    background: transparent;
+    display: grid; place-items: center;
+    cursor: pointer;
+    color: var(--muted);
+    transition: all 0.15s;
+  }
+  .date-btn:hover { background: var(--line-soft); color: var(--ink); }
+  .date-pill {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 0 12px;
+    cursor: pointer;
+    height: 32px;
+    min-width: 230px;
+    position: relative;
+  }
+  .date-pill .cal { color: var(--accent); flex-shrink: 0; }
+  .date-pill .label {
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--ink);
+  }
+  /* ---- live sync indicator ---- */
+  .sync-indicator {
+    margin-left: auto;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 6px 12px;
+    border-radius: 999px;
+    background: #fff;
+    border: 1px solid var(--line);
+    font-size: 11.5px;
+    font-weight: 600;
+    letter-spacing: 0.02em;
+    color: var(--ink-soft);
+    white-space: nowrap;
+    cursor: default;
+    transition: border-color 0.15s, background 0.15s;
+  }
+  .sync-indicator[data-state="error"] {
+    cursor: pointer;
+    border-color: #E9B4B4;
+    background: #FDF3F3;
+    color: #8A2E2E;
+  }
+  .sync-indicator[data-state="error"]:hover {
+    background: #FBE8E8;
+  }
+  /* "updates" — new bookings landed in the background; tap to acknowledge. */
+  .sync-indicator[data-state="updates"] {
+    cursor: pointer;
+    border-color: #E8C97A;
+    background: #FFF7E0;
+    color: #7E5C0E;
+  }
+  .sync-indicator[data-state="updates"]:hover {
+    background: #FFEFC7;
+  }
+  .sync-indicator .sync-dot {
+    width: 8px; height: 8px; border-radius: 50%;
+    background: #B7BECC; flex-shrink: 0;
+    box-shadow: 0 0 0 0 rgba(0,0,0,0);
+  }
+  .sync-indicator[data-state="live"]    .sync-dot { background: #2DBA6B; box-shadow: 0 0 0 3px rgba(45,186,107,0.15); }
+  .sync-indicator[data-state="syncing"] .sync-dot { background: var(--accent); animation: pulse 1.2s ease-in-out infinite; }
+  .sync-indicator[data-state="error"]   .sync-dot { background: #D64545; }
+  .sync-indicator[data-state="idle"]    .sync-dot { background: #B7BECC; }
+  .sync-indicator[data-state="updates"] .sync-dot {
+    background: #C68A1F;
+    box-shadow: 0 0 0 3px rgba(198,138,31,0.18);
+    animation: pulse 1.6s ease-in-out infinite;
+  }
+  @keyframes pulse {
+    0%,100% { opacity: 1; transform: scale(1); }
+    50%     { opacity: 0.5; transform: scale(0.85); }
+  }
+
+  .date-pill .tag {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 9px;
+    font-weight: 700;
+    letter-spacing: 0.12em;
+    padding: 3px 7px;
+    border-radius: 5px;
+    text-transform: uppercase;
+    margin-left: auto;
+  }
+  .date-pill .tag.today  { background: var(--accent-soft); color: var(--accent); }
+  .date-pill .tag.past   { background: #E8EBF0; color: var(--muted); }
+  .date-pill .tag.future { background: #E7F1FF; color: #2563EB; }
+  .date-pill input[type="date"] {
+    position: absolute;
+    inset: 0;
+    opacity: 0;
+    cursor: pointer;
+    border: none;
+    background: transparent;
+  }
+  .date-pill input[type="date"]::-webkit-calendar-picker-indicator {
+    position: absolute;
+    inset: 0;
+    width: 100%; height: 100%;
+    opacity: 0;
+    cursor: pointer;
+  }
+
+  /* ---- MAIN LAYOUT ---- */
+  .main {
+    padding: 0 28px 28px;
+    display: grid;
+    grid-template-columns: 1fr 420px;
+    gap: 20px;
+    overflow: hidden;
+    min-height: 0;
+  }
+
+  /* ---- GRID ----
+     Single scroll container at .grid-wrap with a sticky .grid-head. This
+     keeps the header and body sharing identical widths — if the body had
+     its own scrollbar, the body's 1fr columns would be ~10px narrower than
+     the head's, drifting the time-cell and column boundaries by ~3px per
+     column. Sticky header avoids that mismatch entirely. */
+  .grid-wrap {
+    background: #fff;
+    border: 1px solid var(--line);
+    border-radius: 14px;
+    overflow-y: auto;
+    overflow-x: hidden;
+    display: flex;
+    flex-direction: column;
+    min-height: 0;
+    scrollbar-width: thin;
+  }
+  .grid-wrap::-webkit-scrollbar { width: 10px; }
+  .grid-wrap::-webkit-scrollbar-track { background: transparent; }
+  .grid-wrap::-webkit-scrollbar-thumb {
+    background: var(--line);
+    border-radius: 5px;
+    border: 2px solid #fff;
+  }
+  .grid-head {
+    display: grid;
+    grid-template-columns: 108px repeat(3, 1fr);
+    background: #FAFBFC;
+    border-bottom: 1px solid var(--line);
+    flex-shrink: 0;
+    position: sticky;
+    top: 0;
+    z-index: 10;
+  }
+  .gh-time {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 0.18em;
+    color: var(--muted);
+    padding: 20px 0;
+    text-align: center;
+    border-right: 1px solid var(--line);
+  }
+  .gh-room {
+    padding: 10px 16px 12px;
+    text-align: center;
+    border-right: 1px solid var(--line);
+  }
+  .gh-room:last-child { border-right: none; }
+  .gh-room .ico {
+    width: 28px; height: 28px;
+    margin: 0 auto 4px;
+    border-radius: 7px;
+    background: var(--accent-soft);
+    color: var(--accent);
+    display: grid;
+    place-items: center;
+  }
+  .gh-room .name {
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--ink);
+    letter-spacing: -0.01em;
+  }
+  .gh-room .meta {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px;
+    color: var(--muted);
+    margin-top: 1px;
+    letter-spacing: 0.05em;
+  }
+  /* ---- Blocked / under-construction room header ---- */
+  .gh-room.is-blocked .name { color: #6B6F76; }
+  .gh-room .construction-badge {
+    display: inline-block;
+    margin-top: 4px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 9.5px;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    padding: 2px 7px;
+    border-radius: 3px;
+    background: #FEE2E2;
+    color: #B91C1C;
+    border: 1px solid #FCA5A5;
+  }
+
+  /* Body no longer scrolls — the scroll moved up to .grid-wrap so the
+     sticky .grid-head and the rendered rows share one set of columns. */
+  .grid-body {
+    /* nothing; rendered rows flow naturally inside .grid-wrap */
+  }
+  .row {
+    display: grid;
+    grid-template-columns: 108px repeat(3, 1fr);
+    border-bottom: 1px solid var(--line-soft);
+    min-height: 50px;
+  }
+  .row.hour-start { border-top: 1px solid var(--line); }
+  .row.hour-start .time-cell { font-weight: 700; color: var(--ink); }
+  .time-cell {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11.5px;
+    color: var(--ink-soft);
+    padding-left: 16px;
+    display: flex;
+    align-items: center;
+    background: #FAFBFC;
+    border-right: 1px solid var(--line);
+  }
+  .slot {
+    border-right: 1px solid var(--line-soft);
+    padding: 4px 6px;
+    display: flex;
+    align-items: center;
+    cursor: pointer;
+    position: relative;
+    transition: background 0.12s;
+  }
+  .slot:last-child { border-right: none; }
+  .slot:hover:not(.booked):not(.selected):not(.blocked) { background: #FBFCFD; }
+  /* ---- Under-construction column: striped, non-interactive ---- */
+  .slot.blocked {
+    cursor: not-allowed;
+    background:
+      repeating-linear-gradient(
+        45deg,
+        #FBE9E9 0,
+        #FBE9E9 6px,
+        #FAFBFC 6px,
+        #FAFBFC 14px
+      );
+  }
+  .slot.blocked:hover { background:
+      repeating-linear-gradient(
+        45deg,
+        #FBE9E9 0,
+        #FBE9E9 6px,
+        #FAFBFC 6px,
+        #FAFBFC 14px
+      );
+  }
+  .slot .pill {
+    width: 100%;
+    height: 30px;
+    border-radius: 6px;
+    display: flex;
+    align-items: center;
+    padding: 0 10px;
+    font-size: 12.5px;
+    font-weight: 500;
+    gap: 6px;
+  }
+  /* ---- MERGED BOOKING BLOCK ----
+     contiguous slots with the same user+desc render as ONE block:
+     a shared background spans the rows, only the top cell shows the name */
+  .slot.booked::before {
+    content: '';
+    position: absolute;
+    top: 0; bottom: 0; left: 4px; right: 4px;
+    background: #F2F4F7;
+    border-left: 3px solid var(--locked);
+    pointer-events: none;
+  }
+  .slot.booked.dark::before {
+    background: #EEF1F6;
+    border-left-color: var(--booked);
+  }
+  /* ---- Category color variants ---- */
+  .slot.booked.cat-meeting::before     { background: #E8EEFC; border-left-color: #2E5AAC; }
+  .slot.booked.cat-discussion::before  { background: #F1E9FD; border-left-color: #7C3AED; }
+  .slot.booked.cat-training::before    { background: #DBF3F0; border-left-color: #0E9488; }
+  .slot.booked.cat-grooming::before    { background: #FDEAD8; border-left-color: #D97706; }
+  .slot.booked.cat-planning::before    { background: #DCFCE7; border-left-color: #15803D; }
+  .slot.booked.cat-retrospect::before  { background: #FCE7F0; border-left-color: #BE185D; }
+  /* Title text picks up the category accent for quick recognition */
+  .slot.booked.cat-meeting    .block-head .title { color: #2E5AAC; }
+  .slot.booked.cat-discussion .block-head .title { color: #7C3AED; }
+  .slot.booked.cat-training   .block-head .title { color: #0E9488; }
+  .slot.booked.cat-grooming   .block-head .title { color: #D97706; }
+  .slot.booked.cat-planning   .block-head .title { color: #15803D; }
+  .slot.booked.cat-retrospect .block-head .title { color: #BE185D; }
+  /* ---- Category chip shown inside the cell block-head ---- */
+  .cat-chip {
+    font-size: 8.5px;
+    font-weight: 700;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    padding: 2px 6px;
+    border-radius: 3px;
+    white-space: nowrap;
+    flex-shrink: 0;
+    line-height: 1.3;
+  }
+  .cat-chip-meeting    { background: #2E5AAC; color: #FFF; }
+  .cat-chip-discussion { background: #7C3AED; color: #FFF; }
+  .cat-chip-training   { background: #0E9488; color: #FFF; }
+  .cat-chip-grooming   { background: #D97706; color: #FFF; }
+  .cat-chip-planning   { background: #15803D; color: #FFF; }
+  .cat-chip-retrospect { background: #BE185D; color: #FFF; }
+  .slot.booked.block-start::before {
+    top: 4px;
+    border-top-left-radius: 6px;
+    border-top-right-radius: 6px;
+  }
+  .slot.booked.block-end::before {
+    bottom: 4px;
+    border-bottom-left-radius: 6px;
+    border-bottom-right-radius: 6px;
+  }
+  /* Block-start cell needs a higher stacking order so the label that floats
+     down over the following rows doesn't get painted beneath those cells' backgrounds. */
+  .slot.booked.block-start { z-index: 3; }
+  .slot.booked.pending::before { opacity: 0.6; border-left-style: dashed; }
+  /* Floating label spans the FULL height of the block (set via inline style).
+     Lives inside the block-start cell but extends downward over the rows below. */
+  .slot.booked .block-label {
+    position: absolute;
+    top: 4px;
+    left: 10px;
+    right: 10px;
+    /* height: set via inline style based on number of rows in block */
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+    padding: 3px 0 4px;
+    color: var(--ink);
+    overflow: hidden;
+    pointer-events: none;   /* hovers pass through to the underlying cells */
+    z-index: 1;
+  }
+  .slot.booked .block-head {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 6px;
+    flex-shrink: 0;
+  }
+  .slot.booked .block-head .title {
+    font-size: 12.5px;
+    font-weight: 600;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  /* Start–end time line — sits just under the head, above the description.
+     Clarifies that "10:00 AM" doesn't mean the meeting ends at 10:00 AM,
+     it ends at the next slot. Treated as a primary element of the card,
+     not a footnote — accent-tinted pill so it pops at a glance. */
+  .slot.booked .block-time {
+    align-self: flex-start;
+    display: inline-block;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.06em;
+    color: var(--accent);
+    background: var(--accent-soft);
+    border-radius: 5px;
+    padding: 2px 7px;
+    flex-shrink: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    max-width: 100%;
+    box-sizing: border-box;
+  }
+  .slot.booked.dark .block-time {
+    color: #fff;
+    background: rgba(255, 255, 255, 0.18);
+    backdrop-filter: blur(4px);
+  }
+  /* Per-category recoloring so the time pill harmonizes with the card. */
+  .slot.booked.cat-meeting    .block-time { color: #2E5AAC; background: rgba(46,90,172,0.10); }
+  .slot.booked.cat-discussion .block-time { color: #7C3AED; background: rgba(124,58,237,0.10); }
+  .slot.booked.cat-training   .block-time { color: #0E9488; background: rgba(14,148,136,0.10); }
+  .slot.booked.cat-grooming   .block-time { color: #D97706; background: rgba(217,119,6,0.10); }
+  .slot.booked.cat-planning   .block-time { color: #15803D; background: rgba(21,128,61,0.10); }
+  .slot.booked.cat-retrospect .block-time { color: #BE185D; background: rgba(190,24,93,0.10); }
+  .slot.booked .block-desc {
+    flex: 1;
+    min-height: 0;
+    font-size: 10.5px;
+    font-weight: 400;
+    color: var(--muted);
+    line-height: 1.35;
+    letter-spacing: 0.01em;
+    overflow: hidden;
+    word-break: break-word;
+    display: -webkit-box;
+    -webkit-box-orient: vertical;
+    /* -webkit-line-clamp set via inline style from measured space */
+  }
+  .slot.booked .block-desc.single-line {
+    display: block;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+  }
+  /* truncation indicator — only shown when description is actually cut off */
+  .slot.booked .block-label.truncated::after {
+    content: 'ⓘ';
+    position: absolute;
+    right: 2px;
+    bottom: 2px;
+    font-size: 11px;
+    color: var(--accent);
+    font-weight: 700;
+    line-height: 1;
+    background: rgba(255,255,255,0.85);
+    border-radius: 50%;
+    padding: 1px 3px;
+  }
+  .slot.booked .block-label .tag {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 9px;
+    letter-spacing: 0.14em;
+    color: var(--muted);
+    font-weight: 700;
+    flex-shrink: 0;
+  }
+  .slot.booked .block-label .lock { color: var(--muted); display: flex; flex-shrink: 0; }
+
+  /* ---- HOVER OVERLAY for truncated descriptions ---- */
+  .booking-popover {
+    position: fixed;
+    background: #fff;
+    border: 1px solid var(--line);
+    border-radius: 10px;
+    padding: 12px 14px;
+    box-shadow: 0 16px 36px rgba(14,27,46,0.18);
+    font-size: 13px;
+    color: var(--ink);
+    z-index: 70;
+    max-width: 300px;
+    pointer-events: none;
+    opacity: 0;
+    transform: translateY(-4px);
+    transition: opacity 0.15s, transform 0.15s;
+  }
+  .booking-popover.show { opacity: 1; transform: translateY(0); }
+  .booking-popover::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0;
+    width: 3px; height: 100%;
+    background: var(--accent);
+    border-radius: 10px 0 0 10px;
+  }
+  .booking-popover .pop-title {
+    font-weight: 700;
+    font-size: 13px;
+    letter-spacing: -0.01em;
+    margin-bottom: 4px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+  .booking-popover .pop-title .tag {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 9px;
+    letter-spacing: 0.14em;
+    color: var(--muted);
+    font-weight: 700;
+    padding: 2px 6px;
+    background: var(--line-soft);
+    border-radius: 4px;
+  }
+  .booking-popover .pop-desc {
+    color: var(--ink-soft);
+    font-size: 12.5px;
+    line-height: 1.5;
+  }
+  .booking-popover .pop-meta {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10.5px;
+    color: var(--muted);
+    margin-top: 8px;
+    padding-top: 8px;
+    border-top: 1px dashed var(--line);
+    letter-spacing: 0.03em;
+  }
+
+  /* ---- MERGED RANGE SELECTION ----
+     every selected cell shares accent-soft background.
+     pseudo-element adds borders ONLY where needed:
+       - sides always
+       - top only on range-start
+       - bottom only on range-end
+     This makes a contiguous block across rows in one column. */
+  .slot.selected {
+    background: var(--accent-soft);
+  }
+  .slot.selected::after {
+    content: '';
+    position: absolute;
+    top: 0; bottom: 0; left: 4px; right: 4px;
+    border-left: 1.5px solid var(--accent);
+    border-right: 1.5px solid var(--accent);
+    pointer-events: none;
+    box-shadow: 0 0 0 0 transparent;
+  }
+  .slot.selected.range-start::after {
+    top: 4px;
+    border-top: 1.5px solid var(--accent);
+    border-top-left-radius: 8px;
+    border-top-right-radius: 8px;
+  }
+  .slot.selected.range-end::after {
+    bottom: 4px;
+    border-bottom: 1.5px solid var(--accent);
+    border-bottom-left-radius: 8px;
+    border-bottom-right-radius: 8px;
+  }
+  .slot.selected .range-label {
+    width: 100%;
+    text-align: center;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10.5px;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    color: var(--accent);
+    position: relative;
+    z-index: 1;
+  }
+  .slot.selected .range-label .tag-mini {
+    font-size: 8.5px;
+    letter-spacing: 0.16em;
+    display: block;
+    color: var(--accent-2);
+    opacity: 0.8;
+    margin-bottom: 1px;
+  }
+
+  /* ---- SCHEDULING CARD (light, wheel-picker aesthetic) ---- */
+  .schedule-card {
+    background: #fff;
+    color: var(--ink);
+    border: 1px solid var(--line);
+    border-radius: 14px;
+    box-shadow: 0 8px 24px rgba(14,27,46,0.06);
+    padding: 20px 20px 18px;
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+    overflow-y: auto;
+    position: relative;
+  }
+  .schedule-card::before {
+    content: '';
+    position: absolute;
+    left: 0; right: 0; top: 0;
+    height: 3px;
+    background: var(--accent);
+    border-top-left-radius: 14px;
+    border-top-right-radius: 14px;
+  }
+  .card-title {
+    font-size: 15px;
+    font-weight: 700;
+    margin: 4px 0 0;
+    letter-spacing: -0.01em;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    color: var(--ink);
+  }
+  .card-title .bar {
+    width: 3px; height: 16px;
+    background: var(--accent);
+    border-radius: 2px;
+  }
+
+  .field label {
+    display: block;
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 0.12em;
+    color: var(--muted);
+    text-transform: uppercase;
+    margin-bottom: 5px;
+  }
+  .field input,
+  .field select {
+    width: 100%;
+    background: var(--line-soft);
+    border: 1px solid transparent;
+    border-radius: 8px;
+    padding: 10px 12px;
+    color: var(--ink);
+    font-size: 13.5px;
+    font-family: inherit;
+    outline: none;
+    transition: all 0.15s;
+  }
+  .field input::placeholder { color: #A6AEBD; }
+  .field input:focus,
+  .field select:focus {
+    background: #fff;
+    border-color: var(--accent);
+    box-shadow: 0 0 0 3px var(--accent-glow);
+  }
+  .field input.error {
+    border-color: var(--accent);
+    background: rgba(229,107,63,0.08);
+    animation: shake 0.3s;
+  }
+  /* Native select chevron — subtle, matches the palette */
+  .field select {
+    appearance: none;
+    -webkit-appearance: none;
+    background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%237C8598' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'><path d='M6 9l6 6 6-6'/></svg>");
+    background-repeat: no-repeat;
+    background-position: right 12px center;
+    padding-right: 34px;
+    cursor: pointer;
+  }
+  /* Color swatch in front of the live category indicator on the button */
+  .cat-swatch {
+    display: inline-block;
+    width: 10px; height: 10px; border-radius: 3px;
+    margin-right: 8px;
+    vertical-align: -1px;
+  }
+  @keyframes shake {
+    0%,100% { transform: translateX(0); }
+    25% { transform: translateX(-4px); }
+    75% { transform: translateX(4px); }
+  }
+
+  /* Manual time section (inside card) - matches wheel picker aesthetic */
+  .manual-section {
+    background: var(--line-soft);
+    border-radius: 10px;
+    padding: 12px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+  .manual-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+  .manual-header .ttl {
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 0.14em;
+    color: var(--muted);
+    text-transform: uppercase;
+  }
+  .manual-header .chip {
+    font-size: 10px;
+    font-weight: 600;
+    color: var(--accent);
+    padding: 3px 8px;
+    background: var(--accent-soft);
+    border-radius: 5px;
+    letter-spacing: 0.05em;
+  }
+
+  /* ---- WHEEL PICKER (original design — white card + accent selection band,
+         each column directly typeable) ---- */
+  .wheels {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 2px;
+    position: relative;
+    background: #fff;
+    border-radius: 10px;
+    border: 1px solid var(--line);
+    padding: 6px 10px;
+  }
+
+  /* Each wheel column gets a relative-positioned cell so we can overlay an
+     editable input directly on top of the active center row. The cell adds
+     no visual box of its own — it just establishes a positioning context. */
+  .wheel-cell {
+    position: relative;
+    width: 30px;
+    height: 96px;
+    display: inline-block;
+    z-index: 1;
+  }
+  .wheel-cell.ampm-cell { width: 36px; }
+
+  /* Overlay input — completely invisible by default. No border, no
+     background, no text color. The wheel item beneath shows through
+     untouched. The caret stays accent-tinted so when the user does click,
+     they can see where they're typing. */
+  .wheel-edit {
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    transform: translate(-50%, -50%);
+    width: 100%;
+    height: 30px;
+    background: transparent;
+    border: 0;
+    outline: none;
+    padding: 0;
+    margin: 0;
+    text-align: center;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 14.5px;
+    font-weight: 800;
+    color: transparent;        /* invisible — wheel item shows beneath */
+    caret-color: var(--accent);
+    letter-spacing: 0.02em;
+    z-index: 4;
+    cursor: text;
+    transition: color 0.12s ease;
+  }
+  /* Focused: typed glyphs become visible in ink, matching the active wheel
+     item's color. No outline, no glow — keeps the clean look. */
+  .wheel-edit:focus {
+    color: var(--ink);
+  }
+  /* When the overlay input has focus, hide the active wheel item beneath
+     so the typed text reads cleanly without doubling up. */
+  .wheel-cell:has(.wheel-edit:focus) .wheel-item.active {
+    visibility: hidden;
+  }
+  /* Selection band — accent-tinted so the center value reads as "the chosen one"
+     even before you look at the typography. Two layered pseudos: a soft fill
+     and a thin top/bottom rule. */
+  .wheels::before {
+    content: '';
+    position: absolute;
+    left: 6px; right: 6px;
+    top: 50%;
+    transform: translateY(-50%);
+    height: 32px;
+    /* Soft neutral gray fill — not the accent color. */
+    background: rgba(15, 23, 42, 0.045);
+    border-radius: 6px;
+    pointer-events: none;
+    z-index: 0;
+  }
+  .wheels::after {
+    content: '';
+    position: absolute;
+    left: 6px; right: 6px;
+    top: 50%;
+    transform: translateY(-50%);
+    height: 32px;
+    /* Subtle neutral rules to define the active row, no accent ink. */
+    border-top: 1px solid rgba(15, 23, 42, 0.10);
+    border-bottom: 1px solid rgba(15, 23, 42, 0.10);
+    pointer-events: none;
+    z-index: 2;
+  }
+  .wheel {
+    height: 96px;
+    width: 30px;
+    overflow-y: scroll;
+    scroll-snap-type: y mandatory;
+    scrollbar-width: none;
+    position: relative;
+    z-index: 1;
+    /* Soft edge fade — off-center items stay readable like the reference,
+       just gently de-emphasized at the very top and bottom. */
+    -webkit-mask-image: linear-gradient(180deg,
+      rgba(0,0,0,0.55) 0%,
+      rgba(0,0,0,1)    35%,
+      rgba(0,0,0,1)    65%,
+      rgba(0,0,0,0.55) 100%);
+            mask-image: linear-gradient(180deg,
+      rgba(0,0,0,0.55) 0%,
+      rgba(0,0,0,1)    35%,
+      rgba(0,0,0,1)    65%,
+      rgba(0,0,0,0.55) 100%);
+  }
+  .wheel.ampm { width: 36px; }
+  .wheel::-webkit-scrollbar { display: none; }
+  .wheel-pad { height: 32px; }
+  .wheel-item {
+    height: 32px;
+    scroll-snap-align: center;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 12.5px;
+    color: var(--muted);
+    transition: color 0.18s, font-weight 0.18s, font-size 0.18s, transform 0.18s;
+    cursor: pointer;
+  }
+  .wheel-item.active {
+    color: var(--ink);
+    font-weight: 800;
+    font-size: 14.5px;
+    letter-spacing: 0.02em;
+  }
+  .wheel-sep {
+    color: var(--ink);
+    font-family: 'JetBrains Mono', monospace;
+    font-weight: 800;
+    padding: 0 1px;
+    z-index: 3;
+    font-size: 14px;
+    position: relative;
+  }
+  .wheel-dash {
+    color: var(--accent);
+    font-family: 'JetBrains Mono', monospace;
+    font-weight: 800;
+    padding: 0 4px;
+    z-index: 3;
+    position: relative;
+    font-size: 16px;
+  }
+
+
+  .manual-controls {
+    display: grid;
+    grid-template-columns: 1fr auto;
+    gap: 8px;
+    align-items: center;
+  }
+  .room-select-inline {
+    display: flex;
+    align-items: center;
+    background: #fff;
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    padding: 4px 4px 4px 10px;
+    gap: 4px;
+    height: 36px;
+  }
+  .room-select-inline .lbl {
+    font-size: 9.5px;
+    font-weight: 700;
+    letter-spacing: 0.12em;
+    color: var(--muted);
+    text-transform: uppercase;
+  }
+  .room-select-inline select {
+    border: none;
+    background: transparent;
+    font-family: inherit;
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--ink);
+    outline: none;
+    cursor: pointer;
+    padding: 4px 2px;
+    width: 100%;
+  }
+  .apply-btn {
+    background: var(--ink);
+    color: #fff;
+    border: none;
+    border-radius: 8px;
+    padding: 9px 16px;
+    font-weight: 600;
+    font-size: 12px;
+    cursor: pointer;
+    font-family: inherit;
+    transition: background 0.15s;
+    height: 36px;
+  }
+  .apply-btn:hover { background: var(--accent); }
+
+  /* meta display — flat, card-matching style */
+  .meta-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+    background: var(--line-soft);
+    border-radius: 10px;
+    padding: 14px;
+  }
+  .meta-grid .full { grid-column: 1 / -1; }
+  .meta-item .k {
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 0.12em;
+    color: var(--muted);
+    text-transform: uppercase;
+    margin-bottom: 4px;
+  }
+  .meta-item .v {
+    font-size: 14px;
+    font-weight: 700;
+    letter-spacing: -0.01em;
+    color: var(--ink);
+    font-family: 'JetBrains Mono', monospace;
+  }
+  .meta-item.inter .v { font-family: 'Inter', sans-serif; }
+
+  .confirm-btn {
+    background: var(--accent);
+    color: #fff;
+    border: none;
+    border-radius: 10px;
+    padding: 14px 20px;
+    font-size: 14px;
+    font-weight: 700;
+    font-family: inherit;
+    letter-spacing: -0.01em;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 12px;
+    transition: all 0.15s;
+    box-shadow: 0 4px 14px rgba(229,107,63,0.35);
+    margin-top: auto;
+  }
+  .confirm-btn:hover:not(:disabled) {
+    background: var(--accent-2);
+    transform: translateY(-1px);
+    box-shadow: 0 6px 20px rgba(229,107,63,0.4);
+  }
+  .confirm-btn:disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
+    box-shadow: none;
+  }
+
+  /* toast & modal */
+  .toast {
+    position: fixed;
+    bottom: 28px;
+    right: 28px;
+    background: #fff;
+    border-left: 3px solid var(--accent);
+    border-radius: 10px;
+    padding: 12px 16px;
+    box-shadow: 0 20px 40px rgba(14,27,46,0.18);
+    font-size: 13px;
+    color: var(--ink);
+    transform: translateY(140%);
+    transition: transform 0.35s cubic-bezier(.2,.9,.3,1.2);
+    z-index: 50;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    max-width: 340px;
+  }
+  .toast.show { transform: translateY(0); }
+  .toast .dot { width: 8px; height: 8px; border-radius: 50%; background: var(--accent); flex-shrink: 0; }
+
+  .modal-backdrop {
+    position: fixed;
+    inset: 0;
+    background: rgba(11,31,58,0.5);
+    backdrop-filter: blur(4px);
+    display: none;
+    align-items: center;
+    justify-content: center;
+    z-index: 60;
+  }
+  .modal-backdrop.show { display: flex; }
+  .modal {
+    background: #fff;
+    border-radius: 14px;
+    padding: 24px 28px;
+    width: 440px;
+    box-shadow: 0 30px 80px rgba(0,0,0,0.3);
+  }
+  .modal h3 { margin: 0 0 6px; font-size: 18px; font-weight: 700; letter-spacing: -0.01em; }
+  .modal p { margin: 0 0 14px; font-size: 13px; color: var(--muted); line-height: 1.55; }
+  .modal .row-b { display: flex; justify-content: flex-end; gap: 10px; margin-top: 14px; }
+  .modal-list {
+    background: var(--bg);
+    border-radius: 8px;
+    padding: 10px 14px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 12.5px;
+    color: var(--ink);
+    max-height: 140px;
+    overflow-y: auto;
+  }
+  .btn-solid {
+    background: var(--accent);
+    color: #fff;
+    border: none;
+    border-radius: 8px;
+    padding: 9px 16px;
+    cursor: pointer;
+    font-weight: 600;
+    font-size: 13px;
+  }
+
+  @media (max-width: 1200px) {
+    .main { grid-template-columns: 1fr 380px; }
+  }
+
+  /* =========================================================================
+     FEEDBACK — side tab + centered overlay
+     -------------------------------------------------------------------------
+     A small "Feedback" tab anchored to the right edge opens a centered modal
+     overlay that reuses the same surface language as the existing
+     .modal-backdrop / .modal "Booking Confirmed" dialog: navy-blurred
+     backdrop, white 14px-rounded card, drop shadow. Submissions POST to the
+     same Apps Script endpoint as bookings with action="feedback", which
+     writes to a "Feedback" tab in the same spreadsheet.
+     ========================================================================= */
+  .fb-tab {
+    position: fixed;
+    right: 0;
+    top: 50%;
+    transform: translate(0, -50%) rotate(180deg);
+    writing-mode: vertical-rl;
+    background: #fff;
+    color: var(--ink);
+    padding: 14px 10px;
+    border: 1px solid var(--line);
+    border-right: 0;
+    border-radius: 8px 0 0 8px;
+    font-family: 'Inter', system-ui, sans-serif;
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    cursor: pointer;
+    z-index: 90;
+    box-shadow: -2px 4px 14px rgba(15, 23, 42, 0.06);
+    transition: background 0.18s, color 0.18s, padding 0.18s, box-shadow 0.18s;
+    user-select: none;
+  }
+  .fb-tab:hover {
+    background: var(--accent-soft);
+    color: var(--accent);
+    padding-right: 13px;
+    box-shadow: -2px 4px 18px rgba(229, 107, 63, 0.14);
+  }
+  .fb-tab .fb-tab-dot {
+    display: inline-block;
+    width: 6px; height: 6px;
+    background: var(--accent);
+    border-radius: 50%;
+    margin-bottom: 6px;
+    transform: rotate(180deg);
+  }
+
+  .fb-modal-backdrop {
+    position: fixed;
+    inset: 0;
+    background: rgba(11, 31, 58, 0.5);
+    backdrop-filter: blur(4px);
+    display: none;
+    align-items: center;
+    justify-content: center;
+    z-index: 100;
+    padding: 20px;
+  }
+  .fb-modal-backdrop.show { display: flex; }
+  .fb-modal {
+    background: #fff;
+    border-radius: 14px;
+    padding: 24px 28px;
+    width: 440px;
+    max-width: 100%;
+    max-height: calc(100vh - 40px);
+    overflow-y: auto;
+    box-shadow: 0 30px 80px rgba(0, 0, 0, 0.3);
+    position: relative;
+    font-family: 'Inter', system-ui, sans-serif;
+  }
+  .fb-modal h3 {
+    margin: 0 0 6px;
+    font-size: 18px;
+    font-weight: 700;
+    letter-spacing: -0.01em;
+    color: var(--ink);
+  }
+  .fb-modal p.fb-sub {
+    margin: 0 0 18px;
+    font-size: 13px;
+    color: var(--muted);
+    line-height: 1.55;
+  }
+  .fb-field-label {
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin: 14px 0 8px;
+    display: block;
+  }
+  .fb-field-label:first-child { margin-top: 0; }
+  .fb-seg {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    background: rgba(15, 23, 42, 0.045);
+    border-radius: 10px;
+    padding: 4px;
+    gap: 4px;
+  }
+  .fb-seg input[type="radio"] {
+    position: absolute;
+    opacity: 0;
+    pointer-events: none;
+  }
+  .fb-seg label {
+    text-align: center;
+    padding: 9px 12px;
+    border-radius: 7px;
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--muted);
+    cursor: pointer;
+    transition: background 0.18s, color 0.18s, box-shadow 0.18s;
+    user-select: none;
+  }
+  .fb-seg input[type="radio"]:checked + label {
+    background: #fff;
+    color: var(--ink);
+    box-shadow: 0 1px 3px rgba(15, 23, 42, 0.1), 0 0 0 1px rgba(15, 23, 42, 0.06);
+  }
+  .fb-seg label .fb-seg-icon { margin-right: 6px; font-size: 14px; }
+  .fb-input, .fb-textarea {
+    width: 100%;
+    padding: 11px 13px;
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    background: #fff;
+    font-family: inherit;
+    font-size: 14px;
+    color: var(--ink);
+    box-sizing: border-box;
+    transition: border-color 0.15s, box-shadow 0.15s;
+  }
+  .fb-input:focus, .fb-textarea:focus {
+    outline: none;
+    border-color: var(--accent);
+    box-shadow: 0 0 0 3px var(--accent-soft);
+  }
+  .fb-textarea { min-height: 120px; resize: vertical; line-height: 1.5; }
+  .fb-counter {
+    text-align: right;
+    font-size: 11px;
+    color: var(--muted);
+    margin-top: 4px;
+    font-variant-numeric: tabular-nums;
+  }
+  .fb-status {
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--muted);
+    margin-top: 12px;
+    min-height: 16px;
+  }
+  .fb-status.success { color: #15803d; }
+  .fb-status.error   { color: #b91c1c; }
+  .fb-row-b {
+    display: flex;
+    justify-content: flex-end;
+    gap: 10px;
+    margin-top: 18px;
+  }
+  .fb-btn-secondary {
+    background: #fff;
+    border: 1px solid var(--line);
+    color: var(--ink);
+    border-radius: 8px;
+    padding: 9px 16px;
+    cursor: pointer;
+    font-weight: 600;
+    font-size: 13px;
+    font-family: inherit;
+    transition: background 0.15s;
+  }
+  .fb-btn-secondary:hover { background: rgba(15, 23, 42, 0.04); }
+  .fb-btn-primary {
+    background: var(--accent);
+    color: #fff;
+    border: none;
+    border-radius: 8px;
+    padding: 9px 16px;
+    cursor: pointer;
+    font-weight: 600;
+    font-size: 13px;
+    font-family: inherit;
+    transition: background 0.15s, transform 0.05s;
+  }
+  .fb-btn-primary:hover { background: #d65a30; }
+  .fb-btn-primary:active { transform: translateY(1px); }
+  .fb-btn-primary:disabled { background: var(--line); color: var(--muted); cursor: not-allowed; }
+</style>
+</head>
+<body>
+<div class="app">
+
+  <!-- TOP BAR -->
+  <div class="topbar">
+    <h1 class="page-title">Room Scheduler</h1>
+    <div class="date-filter">
+      <button class="date-btn" id="prevDay" title="Previous day">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M15 18l-6-6 6-6"/></svg>
+      </button>
+      <div class="date-pill" id="datePill">
+        <span class="cal">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg>
+        </span>
+        <span class="label" id="dateLabel">—</span>
+        <span class="tag today" id="dateTag">TODAY</span>
+        <input type="date" id="dateInput" />
+      </div>
+      <button class="date-btn" id="nextDay" title="Next day">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18l6-6-6-6"/></svg>
+      </button>
+    </div>
+
+    <!-- Live sync indicator (Google Sheets) -->
+    <div class="sync-indicator" id="syncIndicator" data-state="idle" title="Live sync with Google Sheets">
+      <span class="sync-dot"></span>
+      <span class="sync-text">Not connected</span>
+    </div>
+  </div>
+
+  <!-- MAIN -->
+  <div class="main">
+    <!-- Grid -->
+    <div class="grid-wrap" id="gridWrap">
+      <div class="grid-head">
+        <div class="gh-time">TIME · 12H</div>
+        <div class="gh-room">
+          <div class="ico">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 20l4-16M16 4l4 16M8 12h8"/></svg>
+          </div>
+          <div class="name">War Room</div>
+          <div class="meta">CAP · 6</div>
+        </div>
+        <div class="gh-room">
+          <div class="ico" style="background:#FDEFE8;color:#D85A2E">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="14" rx="2"/><path d="M3 18l5-5 4 3 5-5 4 4"/></svg>
+          </div>
+          <div class="name">CEO Meeting Room</div>
+          <div class="meta">CAP · 24</div>
+        </div>
+        <div class="gh-room is-blocked">
+          <div class="ico" style="background:#FEE2E2;color:#B91C1C">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 20h20"/><path d="M5 20V8l7-4 7 4v12"/><path d="M9 20v-6h6v6"/></svg>
+          </div>
+          <div class="name">2nd Floor Meeting Rooms</div>
+          <div class="construction-badge">🚧 Under Construction</div>
+        </div>
+      </div>
+      <div class="grid-body" id="gridBody"></div>
+    </div>
+
+    <!-- Scheduling card (light; manual picker lives inside) -->
+    <aside class="schedule-card">
+      <h2 class="card-title"><span class="bar"></span>Confirm Scheduling Details</h2>
+
+      <div class="field">
+        <label>User Name (Mandatory)</label>
+        <input id="userName" type="text" placeholder="First Last" />
+      </div>
+      <div class="field">
+        <label>Description (Optional)</label>
+        <input id="desc" type="text" placeholder="Project or meeting intent…" />
+      </div>
+      <div class="field">
+        <label>Category (Optional)</label>
+        <select id="category">
+          <option value="">Others</option>
+          <option value="Meeting">Meeting</option>
+          <option value="Discussion">Discussion</option>
+          <option value="Training">Training</option>
+          <option value="Grooming">Grooming</option>
+          <option value="Planning">Planning</option>
+          <option value="Retrospect">Retrospect</option>
+        </select>
+      </div>
+
+      <!-- Manual time picker integrated -->
+      <div class="manual-section">
+        <div class="manual-header">
+          <span class="ttl">Manual Time Range</span>
+          <span class="chip">30-min steps</span>
+        </div>
+        <div class="wheels">
+          <div class="wheel-cell">
+            <div class="wheel" id="wSh"></div>
+            <input class="wheel-edit" data-target="wSh" data-kind="hour" inputmode="numeric" maxlength="2" autocomplete="off" spellcheck="false" aria-label="Start hour" />
+          </div>
+          <span class="wheel-sep">:</span>
+          <div class="wheel-cell">
+            <div class="wheel" id="wSm"></div>
+            <input class="wheel-edit" data-target="wSm" data-kind="min" inputmode="numeric" maxlength="2" autocomplete="off" spellcheck="false" aria-label="Start minutes" />
+          </div>
+          <div class="wheel-cell ampm-cell">
+            <div class="wheel ampm" id="wSp"></div>
+            <input class="wheel-edit" data-target="wSp" data-kind="ampm" maxlength="2" autocomplete="off" spellcheck="false" aria-label="Start AM/PM" />
+          </div>
+          <span class="wheel-dash">—</span>
+          <div class="wheel-cell">
+            <div class="wheel" id="wEh"></div>
+            <input class="wheel-edit" data-target="wEh" data-kind="hour" inputmode="numeric" maxlength="2" autocomplete="off" spellcheck="false" aria-label="End hour" />
+          </div>
+          <span class="wheel-sep">:</span>
+          <div class="wheel-cell">
+            <div class="wheel" id="wEm"></div>
+            <input class="wheel-edit" data-target="wEm" data-kind="min" inputmode="numeric" maxlength="2" autocomplete="off" spellcheck="false" aria-label="End minutes" />
+          </div>
+          <div class="wheel-cell ampm-cell">
+            <div class="wheel ampm" id="wEp"></div>
+            <input class="wheel-edit" data-target="wEp" data-kind="ampm" maxlength="2" autocomplete="off" spellcheck="false" aria-label="End AM/PM" />
+          </div>
+        </div>
+        <div class="manual-controls">
+          <div class="room-select-inline">
+            <span class="lbl">Room</span>
+            <select id="manualRoom">
+              <option value="War Room" selected>War Room</option>
+              <option value="CEO Meeting Room">CEO Meeting Room</option>
+              <option value="2nd Floor Meeting Rooms" disabled>2nd Floor Meeting Rooms — Under Construction</option>
+            </select>
+          </div>
+          <button class="apply-btn" id="applyManual">Apply</button>
+        </div>
+      </div>
+
+      <!-- Meta display -->
+      <div class="meta-grid">
+        <div class="meta-item full">
+          <div class="k">Time Range</div>
+          <div class="v" id="mTime">— : — —</div>
+        </div>
+        <div class="meta-item inter">
+          <div class="k">Date</div>
+          <div class="v" id="mDate">—</div>
+        </div>
+        <div class="meta-item inter">
+          <div class="k">Conference Room</div>
+          <div class="v" id="mRoom">Select a range</div>
+        </div>
+      </div>
+
+      <button class="confirm-btn" id="confirmBtn" disabled>
+        Confirm Booking
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="M13 6l6 6-6 6"/></svg>
+      </button>
+    </aside>
+  </div>
+</div>
+
+<!-- toast & modal -->
+<div class="toast" id="toast"><span class="dot"></span><span id="toastMsg"></span></div>
+<div class="modal-backdrop" id="modal">
+  <div class="modal">
+    <h3 id="modalTitle">Booking Confirmed</h3>
+    <p id="modalText"></p>
+    <div class="modal-list" id="modalList"></div>
+    <div class="row-b">
+      <button class="btn-solid" id="modalOk">Got it</button>
+    </div>
+  </div>
+</div>
+
+<script>
+/* =========================
+   CONSTANTS & STATE
+   ========================= */
+const ROOMS = ['War Room', 'CEO Meeting Room', '2nd Floor Meeting Rooms'];
+
+// Rooms that are visible in the grid but cannot accept new bookings.
+// The Apps Script backend enforces the same rule — this client-side block
+// is for fast UX feedback (no round-trip needed to know it's off-limits).
+const BLOCKED_ROOMS = {
+  '2nd Floor Meeting Rooms': 'Under construction — bookings disabled.'
+};
+function isRoomBlocked(room) { return Object.prototype.hasOwnProperty.call(BLOCKED_ROOMS, room); }
+
+// 48 slots × 30 minutes across 24h (stored in 24h format internally, shown in 12h)
+const SLOTS = [];
+for (let h = 0; h < 24; h++) {
+  SLOTS.push(`${String(h).padStart(2,'0')}:00`);
+  SLOTS.push(`${String(h).padStart(2,'0')}:30`);
+}
+
+function to12(t24) {
+  const [h,m] = t24.split(':').map(Number);
+  const p = h >= 12 ? 'PM' : 'AM';
+  const hh = h % 12 === 0 ? 12 : h % 12;
+  return `${hh}:${String(m).padStart(2,'0')} ${p}`;
+}
+function todayISO() {
+  const d = new Date();
+  return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+}
+function fmtDate(iso) {
+  const d = new Date(iso + 'T00:00:00');
+  return d.toLocaleDateString(undefined, { weekday:'short', month:'short', day:'numeric', year:'numeric' });
+}
+
+/* =========================
+   LIVE SYNC CONFIG
+   Paste your deployed Google Apps Script Web App URL below.
+   Leave it blank to run the page offline with the demo seed data.
+   ========================= */
+const LIVE_SYNC = {
+  endpoint: 'https://script.google.com/macros/s/AKfycby66mJ7Ik7ySb08PYPIC-HJuTVDO44poATGmnmdD-Kq-zi8tEzfUy-wF8TitxDKVhgC/exec',
+  // Active poll interval — used when the user has interacted with the page
+  // recently. 15s is the sweet spot for a personal-account quota: fast enough
+  // that other users' bookings appear quickly, slow enough that 100
+  // concurrent users stay comfortably inside the 6h/day Apps Script runtime.
+  pollMs:        15000,
+  // Idle poll interval — kicks in when there's been no mouse/key/scroll/touch
+  // activity for `idleAfterMs`. A tab left open and forgotten on someone's
+  // second monitor consumes ~1/4 the quota of an active tab.
+  idlePollMs:    60000,
+  idleAfterMs:   2 * 60 * 1000   // 2 minutes
+};
+
+// Bookings keyed by date → room → slot.
+// Rows that came from the sheet are flagged with { sheetId }.
+// Demo seed below shows up only when no endpoint is configured.
+let bookingsByDate = LIVE_SYNC.endpoint ? {} : {
+  [todayISO()]: {
+    'War Room': {
+      '09:00': { user: 'Dr. Aris Thorne', desc: 'Quarterly institutional budget review and signoff meeting', locked: true },
+      '09:30': { user: 'Dr. Aris Thorne', desc: 'Quarterly institutional budget review and signoff meeting' }
+    },
+    'CEO Meeting Room': {
+      '10:00': { user: 'Board Council', desc: 'Annual strategy sync', dark: true, locked: true },
+      '10:30': { user: 'Board Council', desc: 'Annual strategy sync', dark: true, locked: true }
+    },
+    '2nd Floor Meeting Rooms': {}
+  }
+};
+function getBookings(date) {
+  if (!bookingsByDate[date]) bookingsByDate[date] = {};
+  // Always ensure every room has a sub-object so render/computeBlocks can't
+  // hit undefined when a sheet row initialised the date with only one room.
+  ROOMS.forEach(r => {
+    if (!bookingsByDate[date][r]) bookingsByDate[date][r] = {};
+  });
+  return bookingsByDate[date];
+}
+
+let currentDate = todayISO();
+let selection = { room: null, startIdx: null, endIdx: null, source: null };
+
+/* =========================
+   DATE FILTER
+   ========================= */
+const dateInput = document.getElementById('dateInput');
+const dateLabel = document.getElementById('dateLabel');
+const dateTag   = document.getElementById('dateTag');
+dateInput.value = currentDate;
+
+function updateDateUI() {
+  const today = todayISO();
+  dateLabel.textContent = fmtDate(currentDate);
+  if (currentDate === today)      { dateTag.textContent = 'TODAY';  dateTag.className = 'tag today'; }
+  else if (currentDate < today)   { dateTag.textContent = 'PAST';   dateTag.className = 'tag past'; }
+  else                            { dateTag.textContent = 'FUTURE'; dateTag.className = 'tag future'; }
+}
+dateInput.addEventListener('change', e => {
+  currentDate = e.target.value || todayISO();
+  selection = { room: null, startIdx: null, endIdx: null, source: null };
+  updateDateUI(); render();
+});
+function shiftDate(delta) {
+  const d = new Date(currentDate + 'T00:00:00');
+  d.setDate(d.getDate() + delta);
+  currentDate = `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+  dateInput.value = currentDate;
+  selection = { room: null, startIdx: null, endIdx: null, source: null };
+  updateDateUI(); render();
+}
+document.getElementById('prevDay').addEventListener('click', () => shiftDate(-1));
+document.getElementById('nextDay').addEventListener('click', () => shiftDate(+1));
+updateDateUI();
+
+/* =========================
+   GRID RENDERING  (12h labels)
+   ========================= */
+const gridBody = document.getElementById('gridBody');
+
+/* Description sizing is now space-based: computed post-render from actual
+   rendered row height vs. rendered head height. No word cap. */
+
+/* Global hover popover for long descriptions */
+const popover = document.createElement('div');
+popover.className = 'booking-popover';
+document.body.appendChild(popover);
+
+function showBookingPopover(cell, block, room) {
+  // range label for the block
+  const startT = SLOTS[block.startIdx];
+  const endT = block.endIdx + 1 < SLOTS.length ? SLOTS[block.endIdx + 1] : '24:00';
+  const rangeStr = `${to12(startT)} – ${endT === '24:00' ? '12:00 AM' : to12(endT)}`;
+
+  popover.innerHTML = `
+    <div class="pop-title">
+      <span>${block.user}</span>
+      ${block.locked ? '<span class="tag">LOCKED</span>' : ''}
+    </div>
+    <div class="pop-desc">${block.desc}</div>
+    <div class="pop-meta">${room} · ${rangeStr}</div>
+  `;
+  popover.classList.add('show');
+
+  // Position: prefer right of the cell; flip to left if overflowing viewport
+  const rect = cell.getBoundingClientRect();
+  popover.style.left = (rect.right + 10) + 'px';
+  popover.style.top  = Math.max(10, rect.top) + 'px';
+  requestAnimationFrame(() => {
+    const pr = popover.getBoundingClientRect();
+    if (pr.right > window.innerWidth - 10) {
+      popover.style.left = Math.max(10, rect.left - pr.width - 10) + 'px';
+    }
+    if (pr.bottom > window.innerHeight - 10) {
+      popover.style.top = (window.innerHeight - pr.height - 10) + 'px';
+    }
+  });
+}
+function hideBookingPopover() {
+  popover.classList.remove('show');
+}
+
+// Group consecutive slots with the same booking (user + desc) into one block
+function computeBlocks(roomBookings) {
+  roomBookings = roomBookings || {};
+  const byIdx = {}; // idx → {block, position: 'start'|'middle'|'end'|'only'}
+  const blocks = [];
+  let cur = null;
+  SLOTS.forEach((slot, idx) => {
+    const b = roomBookings[slot];
+    if (!b) { cur = null; return; }
+    if (cur && cur.user === b.user && (cur.desc || '') === (b.desc || '') && (cur.category || '') === (b.category || '')) {
+      cur.endIdx = idx;
+    } else {
+      cur = {
+        startIdx: idx, endIdx: idx,
+        user: b.user, desc: b.desc || '',
+        locked: !!b.locked, dark: !!b.dark,
+        pending: !!b.pending,
+        category: b.category || ''
+      };
+      blocks.push(cur);
+    }
+  });
+  blocks.forEach(bl => {
+    for (let i = bl.startIdx; i <= bl.endIdx; i++) {
+      byIdx[i] = { block: bl, isStart: i === bl.startIdx, isEnd: i === bl.endIdx };
+    }
+  });
+  return byIdx;
+}
+
+function render() {
+  const bookings = getBookings(currentDate);
+  // pre-compute merged booking blocks per room
+  const blockMap = {};
+  ROOMS.forEach(r => { blockMap[r] = computeBlocks(bookings[r]); });
+
+  gridBody.innerHTML = '';
+
+  // Collected during the pass; measured + sized after the grid is in the DOM.
+  const pendingMeasurements = [];
+
+  SLOTS.forEach((slot, idx) => {
+    const row = document.createElement('div');
+    row.className = 'row' + (slot.endsWith(':00') ? ' hour-start' : '');
+
+    const tc = document.createElement('div');
+    tc.className = 'time-cell';
+    tc.textContent = to12(slot);  // 12h display
+    row.appendChild(tc);
+
+    ROOMS.forEach(room => {
+      const cell = document.createElement('div');
+      cell.className = 'slot';
+      cell.dataset.room = room;
+      cell.dataset.idx = idx;
+
+      const bInfo = blockMap[room][idx]; // {block, isStart, isEnd} or undefined
+      const lo = selection.startIdx !== null ? Math.min(selection.startIdx, selection.endIdx) : -1;
+      const hi = selection.startIdx !== null ? Math.max(selection.startIdx, selection.endIdx) : -1;
+      const inSelection = selection.room === room && idx >= lo && idx <= hi;
+
+      // Blocked rooms: striped, non-interactive. We still draw existing
+      // bookings (so legacy data is visible) but disallow new selections.
+      // The "Under Construction" badge lives in the always-visible room
+      // header (.gh-room.is-blocked) — no per-cell overlay needed, which
+      // also keeps every row exactly 50px tall.
+      if (isRoomBlocked(room)) {
+        cell.classList.add('blocked');
+      }
+
+      if (bInfo) {
+        const { block, isStart, isEnd } = bInfo;
+        cell.classList.add('booked');
+        if (block.dark) cell.classList.add('dark');
+        if (block.pending) cell.classList.add('pending');
+        if (block.category && block.category !== 'Others') {
+          cell.classList.add('cat-' + block.category.toLowerCase());
+        }
+        if (isStart) cell.classList.add('block-start');
+        if (isEnd)   cell.classList.add('block-end');
+        if (isStart) {
+          const label = document.createElement('div');
+          label.className = 'block-label';
+
+          // Header row: user + category chip + LOCKED tag / lock icon
+          const head = document.createElement('div');
+          head.className = 'block-head';
+          let headHtml = `<span class="title">${block.user}</span>`;
+          // Category chip (hidden when "Others" / default)
+          if (block.category && block.category !== 'Others') {
+            headHtml += `<span class="cat-chip cat-chip-${block.category.toLowerCase()}">${block.category}</span>`;
+          }
+          if (block.locked) {
+            headHtml += block.dark
+              ? `<span class="lock"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg></span>`
+              : `<span class="tag">LOCKED</span>`;
+          }
+          head.innerHTML = headHtml;
+          label.appendChild(head);
+
+          // Time range: explicit start–end so "10:00 AM" doesn't get
+          // misread as "the meeting ends at 10:00 AM". The displayed end
+          // is the START of the slot AFTER endIdx (the next slot), which
+          // is the actual moment the room becomes free again.
+          const blkStart = SLOTS[block.startIdx];
+          const blkEndNext = block.endIdx + 1 < SLOTS.length
+            ? SLOTS[block.endIdx + 1]
+            : '24:00';
+          const blkEndLabel = blkEndNext === '24:00' ? '12:00 AM' : to12(blkEndNext);
+          const timeEl = document.createElement('div');
+          timeEl.className = 'block-time';
+          timeEl.textContent = `${to12(blkStart)} – ${blkEndLabel}`;
+          label.appendChild(timeEl);
+
+          // Description: render full text; we'll clamp to fit after measuring.
+          let descEl = null;
+          if (block.desc) {
+            descEl = document.createElement('div');
+            descEl.className = 'block-desc';
+            descEl.textContent = block.desc;
+            label.appendChild(descEl);
+          }
+          cell.appendChild(label);
+
+          // Queue this block for post-layout sizing + overflow detection.
+          const rows = block.endIdx - block.startIdx + 1;
+          pendingMeasurements.push({ cell, label, head, timeEl, descEl, rows, block, room });
+        }
+      } else if (inSelection) {
+        cell.classList.add('selected');
+        if (idx === lo) cell.classList.add('range-start');
+        if (idx === hi) cell.classList.add('range-end');
+
+        // Only start and end cells get labels; middle cells are empty so the block looks merged.
+        if (idx === lo || idx === hi) {
+          const lbl = document.createElement('div');
+          lbl.className = 'range-label';
+          if (lo === hi) {
+            // single-slot range: show combined label
+            const startT = SLOTS[lo];
+            const endT = lo + 1 < SLOTS.length ? SLOTS[lo + 1] : '24:00';
+            lbl.innerHTML = `<span class="tag-mini">START · END</span>${to12(startT)} – ${endT === '24:00' ? '12:00 AM' : to12(endT)}`;
+          } else if (idx === lo) {
+            lbl.innerHTML = `<span class="tag-mini">START</span>${to12(SLOTS[lo])}`;
+          } else {
+            const endT = hi + 1 < SLOTS.length ? SLOTS[hi + 1] : '24:00';
+            lbl.innerHTML = `<span class="tag-mini">END</span>${endT === '24:00' ? '12:00 AM' : to12(endT)}`;
+          }
+          cell.appendChild(lbl);
+        }
+      }
+
+      row.appendChild(cell);
+    });
+
+    gridBody.appendChild(row);
+  });
+
+  updateMeta();
+
+  // ---- Post-layout: size each block label to use the full block height,
+  // compute how many description lines fit, and flag truncation so the
+  // hover overlay only shows when the full text actually doesn't fit. ----
+  requestAnimationFrame(() => {
+    const firstRow = gridBody.querySelector('.row');
+    const rowH = firstRow ? firstRow.getBoundingClientRect().height : 50;
+    const TOP_INSET = 4, BOTTOM_INSET = 4;
+    const PAD_TOP = 3, PAD_BOTTOM = 4;
+    const GAP = 3;
+
+    pendingMeasurements.forEach(({ cell, label, head, timeEl, descEl, rows, block, room }) => {
+      // Label fills the block vertically, matching the ::before inset (4px top/bottom).
+      const labelH = Math.max(0, rows * rowH - (TOP_INSET + BOTTOM_INSET));
+      label.style.height = labelH + 'px';
+
+      // For very short blocks (single 30-min slot), the time line eats
+      // valuable vertical space — hide it when the block is too cramped to
+      // show both head + time + (optional) desc cleanly.
+      const headH = head.getBoundingClientRect().height;
+      const timeH = timeEl ? timeEl.getBoundingClientRect().height : 0;
+      const minRoomForTime = headH + timeH + GAP + PAD_TOP + PAD_BOTTOM;
+      if (timeEl && labelH < minRoomForTime) {
+        timeEl.style.display = 'none';
+      }
+      const visibleTimeH = (timeEl && timeEl.style.display !== 'none') ? timeH : 0;
+      const visibleTimeGap = visibleTimeH > 0 ? GAP : 0;
+
+      if (!descEl) return;
+
+      const availableH = labelH - headH - visibleTimeH - visibleTimeGap - GAP - PAD_TOP - PAD_BOTTOM;
+      const lineH = parseFloat(getComputedStyle(descEl).lineHeight) || 14;
+      const maxLines = Math.max(1, Math.floor(availableH / lineH));
+      descEl.style.webkitLineClamp = maxLines;
+      descEl.style.maxHeight = (maxLines * lineH) + 'px';
+
+      const truncated = descEl.scrollHeight > descEl.clientHeight + 1;
+      if (truncated) {
+        label.classList.add('truncated');
+        block.truncated = true;
+        // Attach hover to every cell spanned by the block so the overlay
+        // triggers whether the pointer is on the start cell or any of the
+        // rows the floating label visually extends into.
+        for (let i = block.startIdx; i <= block.endIdx; i++) {
+          const blockCell = gridBody.querySelector(
+            `.slot[data-room="${CSS.escape(room)}"][data-idx="${i}"]`
+          );
+          if (!blockCell) continue;
+          blockCell.addEventListener('mouseenter', () => showBookingPopover(cell, block, room));
+          blockCell.addEventListener('mouseleave', hideBookingPopover);
+        }
+      }
+    });
+  });
+}
+
+/* =========================
+   RANGE SELECTION (drag OR click start + click end)
+   ========================= */
+let dragging = false, dragMoved = false;
+let dragRoom = null, dragStartIdx = null;
+let pendingAnchor = null; // {room, idx} set after a single click; waits for a second click to complete
+
+function slotElFromPoint(x, y) {
+  const el = document.elementFromPoint(x, y);
+  return el ? el.closest('.slot') : null;
+}
+function isCellBooked(room, idx) {
+  return !!getBookings(currentDate)[room][SLOTS[idx]];
+}
+function clipFromAnchor(room, anchorIdx, toIdx) {
+  if (toIdx === anchorIdx) return anchorIdx;
+  const step = toIdx > anchorIdx ? 1 : -1;
+  let last = anchorIdx;
+  for (let i = anchorIdx + step; step > 0 ? i <= toIdx : i >= toIdx; i += step) {
+    if (isCellBooked(room, i)) break;
+    last = i;
+  }
+  return last;
+}
+function rangeHasBooking(room, lo, hi) {
+  for (let i = lo; i <= hi; i++) if (isCellBooked(room, i)) return true;
+  return false;
+}
+
+gridBody.addEventListener('mousedown', e => {
+  const cell = e.target.closest('.slot');
+  if (!cell || cell.classList.contains('booked')) return;
+  if (cell.classList.contains('blocked')) {
+    showToast('🚧 ' + cell.dataset.room + ' is under construction — bookings disabled');
+    return;
+  }
+  dragging = true;
+  dragMoved = false;
+  dragRoom = cell.dataset.room;
+  dragStartIdx = parseInt(cell.dataset.idx);
+  e.preventDefault();
+});
+
+document.addEventListener('mousemove', e => {
+  if (!dragging) return;
+  const cell = slotElFromPoint(e.clientX, e.clientY);
+  if (!cell || cell.dataset.room !== dragRoom) return;
+  const idx = parseInt(cell.dataset.idx);
+  if (idx !== dragStartIdx) dragMoved = true;
+  if (!dragMoved) return;
+  const clipped = clipFromAnchor(dragRoom, dragStartIdx, idx);
+  selection = { room: dragRoom, startIdx: dragStartIdx, endIdx: clipped, source: 'grid' };
+  pendingAnchor = null;
+  render();
+});
+
+document.addEventListener('mouseup', e => {
+  if (!dragging) return;
+  dragging = false;
+  if (dragMoved) return; // drag already finalised
+
+  // plain click
+  const cell = e.target.closest && e.target.closest('.slot');
+  if (!cell || cell.classList.contains('booked')) return;
+  if (cell.classList.contains('blocked')) return;  // toast already raised on mousedown
+  const room = cell.dataset.room;
+  const idx = parseInt(cell.dataset.idx);
+
+  if (pendingAnchor && pendingAnchor.room === room && pendingAnchor.idx !== idx) {
+    // Second click — complete range anchor → here
+    const lo = Math.min(pendingAnchor.idx, idx);
+    const hi = Math.max(pendingAnchor.idx, idx);
+    const clipped = clipFromAnchor(room, lo, hi);
+    selection = { room, startIdx: lo, endIdx: clipped, source: 'grid' };
+    pendingAnchor = null;
+  } else {
+    // First click — set anchor, show single cell
+    selection = { room, startIdx: idx, endIdx: idx, source: 'grid' };
+    pendingAnchor = { room, idx };
+  }
+  render();
+});
+
+/* =========================
+   META UPDATES
+   ========================= */
+function updateMeta() {
+  const mTime = document.getElementById('mTime');
+  const mRoom = document.getElementById('mRoom');
+  const mDate = document.getElementById('mDate');
+  const btn   = document.getElementById('confirmBtn');
+  const manualRoom = document.getElementById('manualRoom');
+
+  mDate.textContent = fmtDate(currentDate);
+
+  if (selection.room && selection.startIdx !== null) {
+    const lo = Math.min(selection.startIdx, selection.endIdx);
+    const hi = Math.max(selection.startIdx, selection.endIdx);
+    const startT = SLOTS[lo];
+    const endT = hi + 1 < SLOTS.length ? SLOTS[hi + 1] : '24:00';
+    const dur = (hi - lo + 1) * 30;
+    const hrs = Math.floor(dur / 60), mins = dur % 60;
+    const durStr = (hrs ? `${hrs}h` : '') + (mins ? `${mins}m` : '');
+    mTime.textContent = `${to12(startT)} – ${endT === '24:00' ? '12:00 AM' : to12(endT)} · ${durStr}`;
+    mRoom.textContent = selection.room + (selection.source === 'manual' ? ' (manual)' : '');
+    // Mirror the grid-selected room into the manual Room dropdown so the
+    // booking form always reflects the room the user just grabbed a range in.
+    if (manualRoom && manualRoom.value !== selection.room) {
+      manualRoom.value = selection.room;
+    }
+    // Mirror the grid-selected time range into the wheels. 24:00 isn't
+    // representable on the 12h wheels (max is 11:30 PM), so we clamp to
+    // 23:30 for the wheel side — the meta line above still shows "12:00 AM".
+    const startSafe   = startT;
+    const endForWheel = endT === '24:00' ? '23:30' : endT;
+    if (typeof syncWheelsFromValue === 'function') {
+      syncWheelsFromValue(startSafe, 'start');
+      syncWheelsFromValue(endForWheel, 'end');
+    }
+    btn.disabled = false;
+  } else {
+    mTime.textContent = '— : — —';
+    mRoom.textContent = 'Select a range';
+    btn.disabled = true;
+  }
+}
+
+/* =========================
+   WHEEL PICKER (12h + AM/PM · 30-min minutes)
+   ----------------------------------------------------------------
+   Restored as the primary "manual time picker". The text inputs
+   defined below mirror the wheels two ways:
+     - spinning a wheel updates the corresponding input
+     - committing an input snaps the wheels to that value
+   Apply reads from the wheels (which are kept in sync).
+   ========================= */
+const ITEM_H = 32;
+function buildWheel(el, values, initial) {
+  el.innerHTML = '';
+  const top = document.createElement('div'); top.className = 'wheel-pad'; el.appendChild(top);
+  values.forEach(v => {
+    const it = document.createElement('div');
+    it.className = 'wheel-item';
+    it.textContent = v;
+    it.dataset.value = v;
+    it.addEventListener('click', () => {
+      const i = Array.from(el.querySelectorAll('.wheel-item')).indexOf(it);
+      el.scrollTo({ top: i * ITEM_H, behavior: 'smooth' });
+    });
+    el.appendChild(it);
+  });
+  const bot = document.createElement('div'); bot.className = 'wheel-pad'; el.appendChild(bot);
+  const idx = Math.max(0, values.indexOf(initial));
+  requestAnimationFrame(() => { el.scrollTop = idx * ITEM_H; highlight(el); });
+  let t;
+  el.addEventListener('scroll', () => {
+    clearTimeout(t);
+    t = setTimeout(() => { highlight(el); mirrorWheelToInput(el); }, 60);
+  });
+}
+
+/* Mirror the active wheel item into its overlay <input>'s .value, so the
+ * caret has something to land in front of when the user clicks to type.
+ * Skipped while the input is focused — that's the user's cursor space. */
+function mirrorWheelToInput(el) {
+  const input = document.querySelector('.wheel-edit[data-target="' + el.id + '"]');
+  if (!input) return;
+  if (document.activeElement === input) return;
+  const v = getWheel(el);
+  if (v != null) input.value = v;
+}
+function highlight(el) {
+  const idx = Math.round(el.scrollTop / ITEM_H);
+  el.querySelectorAll('.wheel-item').forEach((it, i) => it.classList.toggle('active', i === idx));
+}
+function getWheel(el) {
+  const idx = Math.round(el.scrollTop / ITEM_H);
+  return el.querySelectorAll('.wheel-item')[idx]?.dataset.value;
+}
+// Programmatic setter — used when the text inputs or grid selection drive
+// the wheels. Skips the smooth-scroll animation so updates feel instant.
+function setWheel(el, value) {
+  const items = Array.from(el.querySelectorAll('.wheel-item'));
+  const idx = items.findIndex(it => it.dataset.value === value);
+  if (idx < 0) return;
+  el.scrollTop = idx * ITEM_H;
+  highlight(el);
+}
+
+const hours12 = Array.from({length:12}, (_,i) => String(i + 1).padStart(2,'0')); // 01–12
+const mins30  = ['00','30'];           // 30-min increments only
+const ampm    = ['AM','PM'];
+
+const wSh = document.getElementById('wSh');
+const wSm = document.getElementById('wSm');
+const wSp = document.getElementById('wSp');
+const wEh = document.getElementById('wEh');
+const wEm = document.getElementById('wEm');
+const wEp = document.getElementById('wEp');
+
+buildWheel(wSh, hours12, '09');
+buildWheel(wSm, mins30,  '00');
+buildWheel(wSp, ampm,    'AM');
+buildWheel(wEh, hours12, '10');
+buildWheel(wEm, mins30,  '00');
+buildWheel(wEp, ampm,    'AM');
+
+function to24h(h, m, p) {
+  let hr = parseInt(h);
+  if (p === 'AM' && hr === 12) hr = 0;
+  else if (p === 'PM' && hr !== 12) hr += 12;
+  return `${String(hr).padStart(2,'0')}:${m}`;
+}
+
+/* =========================
+   PER-WHEEL OVERLAY EDITORS
+   -----------------------------------------------------------------
+   Each wheel column carries an absolutely-positioned <input class="wheel-edit">
+   sitting on top of the active item. When unfocused, the input is invisible
+   (color: transparent) and the wheel item below shows through. On focus, the
+   active item is hidden and the input takes over: the user types directly
+   into the column.
+
+   Per-column rules:
+     · 'hour'  — accepts digits, normalizes to 1–12 (zero-padded), commits.
+     · 'min'   — accepts digits, snaps to '00' or '30'.
+     · 'ampm'  — accepts a/A/p/P only, commits as 'AM' or 'PM'.
+   On commit, setWheel() snaps the wheel to the typed value. Bad input is
+   silently restored from the wheel's current value — no error UI.
+   ========================= */
+
+// Decompose a 24h "HH:MM" into wheel-ready { h12, m, p } parts.
+function decomposeFor12h(t24) {
+  const [h, m] = t24.split(':').map(Number);
+  const p = h >= 12 ? 'PM' : 'AM';
+  const hh = h % 12 === 0 ? 12 : h % 12;
+  return { h12: String(hh).padStart(2, '0'), m: String(m).padStart(2, '0'), p };
+}
+
+// Drive the start- or end-side wheels from a "HH:MM" 24h string. Used by
+// updateMeta() when the user makes a grid selection — we want the wheels
+// to reflect that range so Apply works without further input.
+function syncWheelsFromValue(t24, side /* 'start' | 'end' */) {
+  const { h12, m, p } = decomposeFor12h(t24);
+  if (side === 'start') {
+    setWheel(wSh, h12);
+    setWheel(wSm, m);
+    setWheel(wSp, p);
+  } else {
+    setWheel(wEh, h12);
+    setWheel(wEm, m);
+    setWheel(wEp, p);
+  }
+}
+
+// Seed every overlay input's value from its wheel so the caret has a target
+// to land in front of when the user clicks. (CSS hides the text via
+// color: transparent; we still want the value present.)
+document.querySelectorAll('.wheel-edit').forEach(input => {
+  const wheel = document.getElementById(input.dataset.target);
+  if (wheel) input.value = getWheel(wheel) || '';
+});
+
+/* attachWheelEdit
+ * ---------------
+ * Wires one overlay <input> to its wheel. `kind` controls keystroke filtering
+ * and how the typed value commits:
+ *   'hour' — digits 0-9. Empty → restore. Else clamp to 1-12 and zero-pad.
+ *   'min'  — digits 0-9. Snap to '00' or '30' (≥30 → '30', else '00').
+ *   'ampm' — a/p/A/P only. Commits as 'AM' or 'PM'.
+ */
+function attachWheelEdit(input, wheel, kind) {
+  // Show the value (in accent ink) on focus; restore wheel-mirrored value on blur.
+  input.addEventListener('focus', () => {
+    // Select all so the next keystroke replaces the value cleanly.
+    requestAnimationFrame(() => input.select());
+  });
+
+  input.addEventListener('keydown', (e) => {
+    if (e.ctrlKey || e.metaKey || e.altKey) return;
+    const nav = ['Backspace','Delete','ArrowLeft','ArrowRight','ArrowUp','ArrowDown','Home','End','Tab','Enter'];
+    if (nav.includes(e.key)) {
+      if (e.key === 'Enter') { commit(); input.blur(); }
+      // ArrowUp/Down nudge the wheel by one item — power-user affordance.
+      if (e.key === 'ArrowUp' || e.key === 'ArrowDown') {
+        e.preventDefault();
+        const items = wheel.querySelectorAll('.wheel-item');
+        const cur = Math.round(wheel.scrollTop / ITEM_H);
+        const next = e.key === 'ArrowUp' ? Math.max(0, cur - 1) : Math.min(items.length - 1, cur + 1);
+        wheel.scrollTo({ top: next * ITEM_H, behavior: 'smooth' });
+      }
+      return;
+    }
+    if (kind === 'ampm') {
+      if (/^[apAP]$/.test(e.key)) {
+        e.preventDefault();
+        const v = (e.key === 'a' || e.key === 'A') ? 'AM' : 'PM';
+        input.value = v;
+        commit();
+        return;
+      }
+      e.preventDefault();
+      return;
+    }
+    // hour / min: digits only.
+    if (/^[0-9]$/.test(e.key)) return;
+    e.preventDefault();
+  });
+
+  // Block non-conforming pastes silently.
+  input.addEventListener('paste', (e) => {
+    const text = (e.clipboardData || window.clipboardData).getData('text') || '';
+    e.preventDefault();
+    let cleaned = '';
+    if (kind === 'ampm') {
+      const c = text.trim().toUpperCase();
+      if (c.startsWith('A')) cleaned = 'AM';
+      else if (c.startsWith('P')) cleaned = 'PM';
+    } else {
+      cleaned = text.replace(/\D/g, '').slice(0, 2);
+    }
+    if (cleaned) {
+      input.value = cleaned;
+      commit();
+    }
+  });
+
+  // commit — silently snap typed value to a valid wheel item, then setWheel.
+  function commit() {
+    const raw = (input.value || '').trim();
+    let next = null;
+    if (kind === 'hour') {
+      const n = parseInt(raw, 10);
+      if (Number.isFinite(n)) {
+        let h = n;
+        if (h < 1) h = 1;
+        if (h > 12) h = ((h - 1) % 12) + 1; // wrap, e.g. 14 → 2
+        next = String(h).padStart(2, '0');
+      }
+    } else if (kind === 'min') {
+      const n = parseInt(raw, 10);
+      if (Number.isFinite(n)) {
+        next = (n >= 15 && n < 45) ? '30' : (n >= 45 ? '00' : '00');
+        // → 0-14: '00', 15-44: '30', 45-59: '00' (rolls toward next hour mark).
+      }
+    } else if (kind === 'ampm') {
+      const c = raw.toUpperCase();
+      if (c.startsWith('A')) next = 'AM';
+      else if (c.startsWith('P')) next = 'PM';
+    }
+    if (next) {
+      setWheel(wheel, next);
+      input.value = next;
+    } else {
+      // Fall back to whatever the wheel is showing.
+      input.value = getWheel(wheel) || '';
+    }
+  }
+
+  input.addEventListener('blur', commit);
+}
+
+// Wire all six overlay inputs to their wheels.
+document.querySelectorAll('.wheel-edit').forEach(input => {
+  const wheel = document.getElementById(input.dataset.target);
+  if (!wheel) return;
+  attachWheelEdit(input, wheel, input.dataset.kind);
+});
+
+// Apply button: read from the wheels (which are kept in sync with the
+// text inputs), then convert to slot indices.
+document.getElementById('applyManual').addEventListener('click', () => {
+  // If any wheel-edit overlay input is focused, blur it first so its
+  // commit() pushes the typed value into the wheel before we read.
+  const ae = document.activeElement;
+  if (ae && ae.classList && ae.classList.contains('wheel-edit')) ae.blur();
+
+  const start = to24h(getWheel(wSh), getWheel(wSm), getWheel(wSp));
+  const end   = to24h(getWheel(wEh), getWheel(wEm), getWheel(wEp));
+  if (end <= start) { showToast('End must be later than start'); return; }
+
+  const room = document.getElementById('manualRoom').value;
+  if (isRoomBlocked(room)) {
+    showToast('🚧 ' + room + ' is under construction — bookings disabled');
+    return;
+  }
+  const startIdx = SLOTS.indexOf(start);
+  let endIdxExclusive = SLOTS.indexOf(end);
+  if (endIdxExclusive === -1) endIdxExclusive = SLOTS.length; // 12:00 AM next-day edge
+  const endIdx = endIdxExclusive - 1;
+
+  if (startIdx < 0 || endIdx < startIdx) { showToast('Invalid range'); return; }
+  if (rangeHasBooking(room, startIdx, endIdx)) { showToast('Range overlaps an existing booking'); return; }
+
+  selection = { room, startIdx, endIdx, source: 'manual' };
+  pendingAnchor = null;
+  render();
+  document.getElementById('gridWrap').scrollTo({ top: Math.max(0, (startIdx - 2)) * 44, behavior: 'smooth' });
+});
+
+/* =========================
+   CONFIRM BOOKING
+   ========================= */
+document.getElementById('confirmBtn').addEventListener('click', async () => {
+  const nameInput = document.getElementById('userName');
+  const name = nameInput.value.trim();
+  if (!name) {
+    nameInput.classList.add('error');
+    nameInput.focus();
+    showToast('User name is required');
+    setTimeout(() => nameInput.classList.remove('error'), 1200);
+    return;
+  }
+  const desc = document.getElementById('desc').value.trim();
+  const category = document.getElementById('category').value.trim(); // '' means Others
+  if (!selection.room || selection.startIdx === null) return;
+  if (isRoomBlocked(selection.room)) {
+    showToast('🚧 ' + selection.room + ' is under construction — bookings disabled');
+    return;
+  }
+
+  const bookings = getBookings(currentDate);
+  const room = selection.room;
+  const lo = Math.min(selection.startIdx, selection.endIdx);
+  const hi = Math.max(selection.startIdx, selection.endIdx);
+
+  // Optimistic local add. Mark with a temp sheetId so the sync pass can
+  // reconcile it with the real row once the sheet ack's.
+  const tempId = 'pending-' + Date.now() + '-' + Math.random().toString(36).slice(2, 6);
+  for (let i = lo; i <= hi; i++) {
+    const s = SLOTS[i];
+    if (!bookings[room][s]) {
+      bookings[room][s] = { user: name, desc, category, pending: true, sheetId: tempId };
+    }
+  }
+  const startT = SLOTS[lo];
+  const endT = hi + 1 < SLOTS.length ? SLOTS[hi + 1] : '24:00';
+  const lineRange = `${to12(startT)} – ${endT === '24:00' ? '12:00 AM' : to12(endT)}`;
+
+  document.getElementById('modalTitle').textContent = 'Booking Confirmed';
+  document.getElementById('modalText').textContent =
+    `${name} reserved ${room} on ${fmtDate(currentDate)}${desc ? ' — ' + desc : ''}.`;
+  document.getElementById('modalList').innerHTML = `${room}  ·  ${lineRange}`;
+  document.getElementById('modal').classList.add('show');
+
+  nameInput.value = '';
+  document.getElementById('desc').value = '';
+  document.getElementById('category').value = '';
+  selection = { room: null, startIdx: null, endIdx: null, source: null };
+  pendingAnchor = null;
+  render();
+
+  // Push to Google Sheets if sync is configured. On failure, revert the
+  // optimistic local add so the website reflects the sheet's actual state.
+  if (liveSyncEnabled()) {
+    const payload = {
+      date: currentDate, room,
+      startTime: startT, endTime: endT,
+      user: name, desc, category, locked: false
+    };
+    try {
+      const { id } = await pushBookingToSheet(payload);
+      for (let i = lo; i <= hi; i++) {
+        const s = SLOTS[i];
+        const b = bookings[room][s];
+        if (b && b.sheetId === tempId) { b.pending = false; b.sheetId = id; }
+      }
+      // Pre-register this id so the next poll's diff doesn't classify the
+      // user's own booking as a "new booking they need to be told about".
+      lastKnownSheetIds.add(id);
+      render();
+    } catch (err) {
+      for (let i = lo; i <= hi; i++) {
+        const s = SLOTS[i];
+        if (bookings[room][s] && bookings[room][s].sheetId === tempId) delete bookings[room][s];
+      }
+      showToast('Could not save to sheet: ' + (err.message || err));
+      render();
+    }
+  }
+});
+document.getElementById('modalOk').addEventListener('click', () => {
+  document.getElementById('modal').classList.remove('show');
+});
+
+/* =========================
+   TOAST + INIT
+   ========================= */
+let toastTimer;
+function showToast(msg, duration) {
+  const t = document.getElementById('toast');
+  document.getElementById('toastMsg').textContent = msg;
+  t.classList.add('show');
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => t.classList.remove('show'), duration || 2200);
+}
+
+render();
+// Open the schedule scrolled to 6:00 AM on load. The scroll container is
+// .grid-wrap (the sticky-header layout) — gridBody itself no longer scrolls.
+requestAnimationFrame(() => {
+  const rowH = gridBody.querySelector('.row')?.offsetHeight || 44;
+  const sixAmIdx = SLOTS.indexOf('06:00');
+  // The sticky .grid-head sits inside .grid-wrap and occupies space at the
+  // top — scrolling to (idx * rowH) places that row directly under the head.
+  document.getElementById('gridWrap').scrollTop = sixAmIdx * rowH;
+});
+
+/* =========================
+   LIVE SYNC — Google Sheets via Apps Script Web App
+   ========================= */
+let lastSyncAt     = null;
+let syncState      = 'idle';
+let lastSyncError  = '';      // last error message (for the detail popup)
+let errorRetryTimer = null;   // fast-retry after an error
+// Conditional-GET timestamp. We send this to the server on every poll; it
+// short-circuits with { unchanged: true } if the sheet hasn't been touched
+// since. 0 means "I have nothing — send the full payload". Updated on every
+// successful poll regardless of changed/unchanged.
+let lastModifiedAt = 0;
+
+// Three-state sync indicator support.
+//   - "Up to date"    → state='live' and unacknowledgedAdditions === 0
+//   - "N new bookings" → state='live' and unacknowledgedAdditions > 0
+//                        (rendered as data-state="updates" so CSS picks it up)
+//   - "Sync error"    → state='error' (existing)
+//
+// We track which sheet IDs we've already seen so each poll can compute a diff
+// and count net new bookings. Bookings the user creates locally are added to
+// `lastKnownSheetIds` immediately, so they aren't double-counted as "new"
+// when the next poll returns them.
+let unacknowledgedAdditions = 0;
+let lastKnownSheetIds       = new Set();
+let firstSyncDone           = false;
+
+function liveSyncEnabled() {
+  return !!(LIVE_SYNC.endpoint && typeof fetch === 'function');
+}
+
+function setSyncState(s, err) {
+  syncState = s;
+  if (s === 'error') lastSyncError = err || lastSyncError || 'Unknown error';
+  if (s === 'live')  lastSyncError = '';
+  const el = document.getElementById('syncIndicator');
+  if (!el) return;
+  // When live and we have unacknowledged additions, swap the rendered
+  // data-state to "updates" so the amber styling kicks in. The internal
+  // syncState stays 'live' — "updates" is purely a display sub-state.
+  const hasUpdates = (s === 'live' && unacknowledgedAdditions > 0);
+  el.dataset.state = hasUpdates ? 'updates' : s;
+  const text =
+    hasUpdates       ? (unacknowledgedAdditions === 1
+                          ? '1 new booking — tap to dismiss'
+                          : unacknowledgedAdditions + ' new bookings — tap to dismiss') :
+    s === 'live'     ? 'Up to date' :
+    s === 'syncing'  ? 'Syncing…' :
+    s === 'error'    ? 'Sync error — tap for detail' :
+                       (liveSyncEnabled() ? 'Connecting…' : 'Offline (demo data)');
+  el.querySelector('.sync-text').textContent = text;
+  el.title =
+    s === 'error'  ? lastSyncError :
+    hasUpdates     ? 'New bookings landed since you last looked. Tap to dismiss.' :
+                     'Live sync with Google Sheets';
+}
+
+// Click handler:
+//   - In 'error' state → surface the actual error in a toast and force-retry.
+//   - When there are unacknowledged additions → reset the counter (the user
+//     has now "seen" the new bookings) and the pill returns to "Up to date".
+//   - Otherwise → no-op (the pill is informational).
+document.addEventListener('DOMContentLoaded', () => {
+  const el = document.getElementById('syncIndicator');
+  if (!el) return;
+  el.addEventListener('click', () => {
+    if (syncState === 'error') {
+      showToast('Sync error: ' + (lastSyncError || 'unknown'), 6000);
+      pullFromSheet();
+      return;
+    }
+    if (unacknowledgedAdditions > 0) {
+      unacknowledgedAdditions = 0;
+      setSyncState(syncState);  // re-render the pill back to "Up to date"
+    }
+  });
+});
+function relTime(d) {
+  if (!d) return 'just now';
+  const s = Math.floor((Date.now() - d.getTime()) / 1000);
+  if (s < 5)  return 'just now';
+  if (s < 60) return s + 's ago';
+  const m = Math.floor(s / 60);
+  if (m < 60) return m + 'm ago';
+  return d.toLocaleTimeString();
+}
+
+// Convert a sheet row (start/end times) into the slot range we use internally.
+function slotIndexRange(startTime, endTime) {
+  const startIdx = SLOTS.indexOf(startTime);
+  if (startIdx < 0) return null;
+  const stopIdx = endTime === '24:00' ? SLOTS.length : SLOTS.indexOf(endTime);
+  if (stopIdx < 0 || stopIdx <= startIdx) return null;
+  return { startIdx, stopIdx };
+}
+
+function applySheetBookings(rows) {
+  // Drop everything currently sourced from the sheet — keep only
+  // bookings with no sheetId (demo/local entries with no endpoint) and
+  // still-pending optimistic entries that haven't been acknowledged.
+  Object.keys(bookingsByDate).forEach(date => {
+    ROOMS.forEach(room => {
+      const byRoom = bookingsByDate[date] && bookingsByDate[date][room];
+      if (!byRoom) return;
+      Object.keys(byRoom).forEach(slot => {
+        const b = byRoom[slot];
+        if (b && b.sheetId && !b.pending) delete byRoom[slot];
+      });
+    });
+  });
+
+  rows.forEach(row => {
+    if (!ROOMS.includes(row.room)) return;
+    const range = slotIndexRange(row.startTime, row.endTime);
+    if (!range) return;
+    // getBookings() guarantees all three rooms are present for this date.
+    const byRoom = getBookings(row.date)[row.room];
+    for (let i = range.startIdx; i < range.stopIdx; i++) {
+      // Don't overwrite a locally-pending slot; the next sync after the
+      // ack will replace it cleanly.
+      const existing = byRoom[SLOTS[i]];
+      if (existing && existing.pending) continue;
+      byRoom[SLOTS[i]] = {
+        user:   row.user,
+        desc:   row.desc || '',
+        locked: !!row.locked,
+        category: row.category || '',
+        sheetId: row.id
+      };
+    }
+  });
+
+  // Diff against the last known snapshot to count *net new* sheet IDs. We
+  // skip this on the very first poll (everything is "new" then by definition
+  // — that's just initial data, not changes). Bookings the user creates
+  // locally are pre-registered into lastKnownSheetIds when the server ack
+  // returns, so they don't double-count here.
+  const newIds = new Set();
+  rows.forEach(r => { if (r && r.id) newIds.add(r.id); });
+  if (firstSyncDone) {
+    let added = 0;
+    newIds.forEach(id => { if (!lastKnownSheetIds.has(id)) added++; });
+    if (added > 0) unacknowledgedAdditions += added;
+  } else {
+    firstSyncDone = true;
+  }
+  lastKnownSheetIds = newIds;
+
+  render();
+}
+
+/* ---- Transport detection ----
+ * When the page is served by Apps Script (HtmlService), `google.script.run`
+ * is available. It's an in-iframe RPC bridge that uses postMessage — not
+ * HTTP — so it is NOT subject to CORS, Firefox Enhanced Tracking Protection,
+ * Safari ITP, privacy extensions, or corporate proxy blocks.
+ *
+ * Fallback: if this HTML is opened outside Apps Script (e.g. from disk,
+ * a separate host, or GitHub Pages), we fall back to the fetch-based
+ * transport against LIVE_SYNC.endpoint.
+ */
+const RPC_AVAILABLE = (typeof google !== 'undefined' && google.script && google.script.run);
+
+function rpcCall(method, args) {
+  return new Promise((resolve, reject) => {
+    const runner = google.script.run
+      .withSuccessHandler(result => {
+        if (result && result.ok) resolve(result.data || {});
+        else reject(new Error((result && result.error) || 'server error'));
+      })
+      .withFailureHandler(err => reject(new Error((err && err.message) || String(err))));
+    runner[method].apply(runner, args || []);
+  });
+}
+
+async function fetchGetBookings() {
+  const url = LIVE_SYNC.endpoint +
+    (LIVE_SYNC.endpoint.includes('?') ? '&' : '?') +
+    'api=1&since=' + lastModifiedAt + '&t=' + Date.now();
+  const res = await fetch(url);
+  if (!res.ok) {
+    throw new Error(`HTTP ${res.status} ${res.statusText}. ` +
+      (res.status === 401 || res.status === 403
+        ? 'Deployment is not set to "Anyone" — set it in Deploy → Manage deployments → Edit → Who has access.'
+        : 'The Apps Script web app returned an error.'));
+  }
+  const ct = res.headers.get('content-type') || '';
+  const raw = await res.text();
+  if (!ct.includes('application/json') && raw.trim().startsWith('<')) {
+    throw new Error('Endpoint returned HTML instead of JSON. ' +
+      'Usually means the deployment is private or the URL is wrong. ' +
+      'Fix: Deploy → Manage deployments → Edit → "Who has access: Anyone" → New version → Deploy.');
+  }
+  let json;
+  try { json = JSON.parse(raw); }
+  catch (_) { throw new Error('Malformed response (not JSON). First 80 chars: ' + raw.slice(0, 80)); }
+  if (!json.ok) throw new Error(json.error || 'server error');
+  return json.data || {};
+}
+
+async function fetchCreateBooking(booking) {
+  const res = await fetch(LIVE_SYNC.endpoint, {
+    method: 'POST',
+    headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+    body: JSON.stringify({ action: 'create', booking })
+  });
+  const json = await res.json();
+  if (!json.ok) throw new Error(json.error || 'server error');
+  return json.data || {};
+}
+
+async function pullFromSheet() {
+  if (!liveSyncEnabled()) return;
+  if (syncState !== 'live') setSyncState('syncing');
+  try {
+    const data = RPC_AVAILABLE
+      ? await rpcCall('apiGetBookings', [lastModifiedAt])
+      : await fetchGetBookings();
+    // Always pick up the freshest server timestamp so subsequent polls can
+    // short-circuit. Server returns lastModifiedAt on both changed and
+    // unchanged responses.
+    if (data && typeof data.lastModifiedAt === 'number') {
+      lastModifiedAt = data.lastModifiedAt;
+    }
+    // Skip re-render entirely when the server says nothing has changed.
+    // Existing bookings stay in place — no redundant DOM work, no flicker.
+    if (!(data && data.unchanged)) {
+      applySheetBookings((data && data.bookings) || []);
+    }
+    lastSyncAt = new Date();
+    setSyncState('live');
+    clearTimeout(errorRetryTimer);
+    errorRetryTimer = null;
+  } catch (e) {
+    const msg = (e && e.message) || String(e);
+    console.warn('[sync] pull failed:', msg);
+    setSyncState('error', msg);
+    // Fast-retry once after 3s so recovery feels immediate once a fix is in.
+    clearTimeout(errorRetryTimer);
+    errorRetryTimer = setTimeout(pullFromSheet, 3000);
+  }
+}
+
+async function pushBookingToSheet(booking) {
+  // RPC path bypasses HTTP entirely; fallback uses the fetch POST.
+  if (RPC_AVAILABLE) {
+    // google.script.run doesn't like complex nested objects as params,
+    // so we pass a JSON string and parse it server-side.
+    return await rpcCall('apiCreateBooking', [JSON.stringify(booking)]);
+  }
+  return await fetchCreateBooking(booking);
+}
+
+// Kick off polling + keep the "X seconds ago" label fresh.
+//
+// Sync only runs while the tab is *visible*. Background tabs, minimized
+// windows, and locked screens all pause both the data poll and the
+// relative-time label tick. When the tab comes back into focus we do an
+// immediate pull so the user never sees a stale grid for the poll interval.
+//
+// Why visibility instead of focus/blur: visibilitychange covers tab-switch,
+// minimize, and OS sleep on every modern browser. blur/focus would also
+// fire when the user just clicks into another app window that's side-by-
+// side with the scheduler — we want sync to keep running there because
+// the user can still see the grid.
+// Adaptive polling: every poll re-decides its own next delay based on how
+// long it's been since the user last interacted. This lets us run a tight
+// 15s loop while the user is actually using the page, then back off to 60s
+// on tabs left open and forgotten — without ever needing a hard-coded
+// "active" / "idle" mode flag.
+let pollTimer = null;
+let lastActivityAt = Date.now();
+
+function nextPollDelay() {
+  const idleMs = Date.now() - lastActivityAt;
+  return idleMs > LIVE_SYNC.idleAfterMs ? LIVE_SYNC.idlePollMs : LIVE_SYNC.pollMs;
+}
+
+function schedulePoll() {
+  if (pollTimer) clearTimeout(pollTimer);
+  pollTimer = setTimeout(async () => {
+    pollTimer = null;
+    if (document.visibilityState !== 'visible') return; // safety net
+    await pullFromSheet();
+    if (document.visibilityState === 'visible') schedulePoll();
+  }, nextPollDelay());
+}
+
+function startPolling() {
+  if (pollTimer) return;
+  pullFromSheet();           // immediate refresh on resume
+  schedulePoll();
+}
+
+function stopPolling() {
+  if (pollTimer)      { clearTimeout(pollTimer);       pollTimer = null; }
+  if (errorRetryTimer) { clearTimeout(errorRetryTimer); errorRetryTimer = null; }
+}
+
+// Activity detection — any of these events resets the idle timer. We use
+// `passive: true` so we never block scrolling. If the user was previously
+// idle and just came back, we trigger an immediate pull rather than waiting
+// out the remaining idle delay (so they see fresh data right away).
+['mousedown', 'keydown', 'scroll', 'touchstart', 'pointermove'].forEach(evt => {
+  document.addEventListener(evt, () => {
+    const now = Date.now();
+    const wasIdle = (now - lastActivityAt) > LIVE_SYNC.idleAfterMs;
+    lastActivityAt = now;
+    if (wasIdle && document.visibilityState === 'visible' && pollTimer) {
+      // Snap back to active cadence with an immediate refresh.
+      clearTimeout(pollTimer);
+      pollTimer = null;
+      pullFromSheet().finally(() => {
+        if (document.visibilityState === 'visible') schedulePoll();
+      });
+    }
+  }, { passive: true });
+});
+
+if (liveSyncEnabled()) {
+  if (document.visibilityState === 'visible') {
+    startPolling();
+  } else {
+    setSyncState('idle');           // show "paused" until the tab is opened
+  }
+  document.addEventListener('visibilitychange', () => {
+    if (document.visibilityState === 'visible') {
+      startPolling();
+    } else {
+      stopPolling();
+    }
+  });
+} else {
+  setSyncState('idle');
+}
+</script>
+
+<!-- =========================
+     FEEDBACK — markup
+     Mirrors the existing "Booking Confirmed" .modal-backdrop / .modal layout.
+     Submissions go through the same Apps Script Web App as bookings, with
+     action="feedback" — the .gs side routes that to appendFeedback_, which
+     writes to the "Feedback" tab in the same spreadsheet. Bookings tab is
+     never touched.
+     ========================= -->
+<button class="fb-tab" id="fbTab" type="button" aria-label="Open feedback">
+  <span class="fb-tab-dot"></span>Feedback
+</button>
+<div class="fb-modal-backdrop" id="fbBackdrop">
+  <form class="fb-modal" id="fbForm" role="dialog" aria-labelledby="fbTitle" autocomplete="off">
+    <h3 id="fbTitle">Suggestions &amp; Complaints</h3>
+    <p class="fb-sub">Tell us what would make the scheduler better, or flag something that's broken. We read every note.</p>
+
+    <label class="fb-field-label">Type</label>
+    <div class="fb-seg" role="radiogroup" aria-label="Feedback type">
+      <input type="radio" id="fbTypeSuggestion" name="fbType" value="suggestion" checked />
+      <label for="fbTypeSuggestion"><span class="fb-seg-icon">💡</span>Suggestion</label>
+      <input type="radio" id="fbTypeComplaint" name="fbType" value="complaint" />
+      <label for="fbTypeComplaint"><span class="fb-seg-icon">⚠️</span>Complaint</label>
+    </div>
+
+    <label class="fb-field-label" for="fbName">Name <span style="font-weight:400;text-transform:none;letter-spacing:0;color:var(--muted);">(optional)</span></label>
+    <input class="fb-input" id="fbName" type="text" maxlength="80" placeholder="Anonymous if left blank" />
+
+    <label class="fb-field-label" for="fbMessage">Message</label>
+    <textarea class="fb-textarea" id="fbMessage" placeholder="What's on your mind?" required></textarea>
+    <div class="fb-counter" id="fbCounter">0 / 1000</div>
+
+    <div class="fb-status" id="fbStatus"></div>
+
+    <div class="fb-row-b">
+      <button type="button" class="fb-btn-secondary" id="fbCancel">Cancel</button>
+      <button type="submit" class="fb-btn-primary" id="fbSubmit">Send</button>
+    </div>
+  </form>
+</div>
+
+<script>
+/* =========================================================================
+   FEEDBACK — wiring
+   -------------------------------------------------------------------------
+   Reuses LIVE_SYNC.endpoint (the same /exec URL bookings use) and tags the
+   POST with action="feedback". The Apps Script side routes that to
+   appendFeedback_, which writes to a separate "Feedback" tab — bookings
+   tab is never touched. If LIVE_SYNC.endpoint is unset (offline demo mode),
+   we still show a "submitted" toast for UX continuity but don't actually
+   send anything.
+   ========================================================================= */
+const fbTab      = document.getElementById('fbTab');
+const fbBackdrop = document.getElementById('fbBackdrop');
+const fbCancel   = document.getElementById('fbCancel');
+const fbForm     = document.getElementById('fbForm');
+const fbName     = document.getElementById('fbName');
+const fbMessage  = document.getElementById('fbMessage');
+const fbCounter  = document.getElementById('fbCounter');
+const fbSubmit   = document.getElementById('fbSubmit');
+const fbStatus   = document.getElementById('fbStatus');
+
+function openFeedback() {
+  fbBackdrop.classList.add('show');
+  // Reset to defaults whenever the dialog opens.
+  fbForm.querySelector('input[name="fbType"][value="suggestion"]').checked = true;
+  setFbStatus('');
+  fbCounter.textContent = (fbMessage.value.length || 0) + ' / ' + FB_MAX;
+  setTimeout(() => fbMessage.focus(), 60);
+}
+function closeFeedback() {
+  fbBackdrop.classList.remove('show');
+}
+fbTab.addEventListener('click', openFeedback);
+fbCancel.addEventListener('click', closeFeedback);
+fbBackdrop.addEventListener('click', (e) => {
+  if (e.target === fbBackdrop) closeFeedback();
+});
+document.addEventListener('keydown', (e) => {
+  if (e.key === 'Escape' && fbBackdrop.classList.contains('show')) closeFeedback();
+});
+
+const FB_MAX = 1000;
+fbMessage.addEventListener('input', () => {
+  if (fbMessage.value.length > FB_MAX) fbMessage.value = fbMessage.value.slice(0, FB_MAX);
+  fbCounter.textContent = fbMessage.value.length + ' / ' + FB_MAX;
+});
+
+function setFbStatus(text, kind) {
+  fbStatus.textContent = text || '';
+  fbStatus.classList.remove('success', 'error');
+  if (kind) fbStatus.classList.add(kind);
+}
+
+fbForm.addEventListener('submit', async (e) => {
+  e.preventDefault();
+  const message = fbMessage.value.trim();
+  if (!message) {
+    setFbStatus('Please enter a message before submitting.', 'error');
+    fbMessage.focus();
+    return;
+  }
+  const type = fbForm.querySelector('input[name="fbType"]:checked').value;
+  const name = fbName.value.trim();
+
+  // Offline demo mode — no endpoint configured. Just show a friendly toast.
+  if (!LIVE_SYNC.endpoint) {
+    setFbStatus('Submitted locally (no endpoint configured).', 'success');
+    showToast('✅ Thanks for your ' + type + '!');
+    fbForm.reset();
+    fbCounter.textContent = '0 / ' + FB_MAX;
+    setTimeout(closeFeedback, 800);
+    return;
+  }
+
+  fbSubmit.disabled = true;
+  setFbStatus('Sending…');
+  try {
+    // Apps Script Web Apps don't accept application/json without CORS preflight
+    // pain — text/plain with a JSON-string body is the standard pattern.
+    const res = await fetch(LIVE_SYNC.endpoint, {
+      method: 'POST',
+      headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+      body: JSON.stringify({
+        action: 'feedback',
+        feedback: {
+          type,
+          name,
+          message,
+          page: 'room-scheduler',
+          userAgent: navigator.userAgent,
+          submittedAt: new Date().toISOString()
+        }
+      })
+    });
+    const json = await res.json().catch(() => ({}));
+    if (!res.ok || json.ok === false) {
+      throw new Error((json && json.error) || ('HTTP ' + res.status));
+    }
+    setFbStatus('Thank you — your ' + type + ' was received.', 'success');
+    showToast('✅ Thanks for your ' + type + '!');
+    fbForm.reset();
+    fbCounter.textContent = '0 / ' + FB_MAX;
+    setTimeout(closeFeedback, 1100);
+  } catch (err) {
+    setFbStatus('Could not send: ' + (err.message || err), 'error');
+  } finally {
+    fbSubmit.disabled = false;
+  }
+});
+</script>
+</body>
+</html>

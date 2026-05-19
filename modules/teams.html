@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Teams</title>
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600&display=swap" rel="stylesheet" />
+<style>
+  *{box-sizing:border-box}
+  html,body{margin:0;height:100%}
+  body{
+    font-family:'Poppins',sans-serif;
+    background:#F4F5F9;
+    color:#2A2F45;
+    display:grid;place-items:center;
+    -webkit-font-smoothing:antialiased;
+  }
+  .card{
+    background:#fff;border-radius:22px;
+    padding:48px 60px;text-align:center;
+    box-shadow:0 30px 60px -30px rgba(40,45,75,.18);
+    max-width:520px;
+  }
+  .badge{
+    display:inline-flex;align-items:center;gap:8px;
+    padding:6px 14px;border-radius:30px;
+    background:#EEF0FF;color:#5C68F2;
+    font-size:11px;font-weight:600;
+    letter-spacing:.8px;text-transform:uppercase;
+    margin-bottom:18px;
+  }
+  .badge::before{
+    content:'';width:6px;height:6px;border-radius:50%;background:#5C68F2;
+  }
+  h1{margin:0 0 10px;font-size:28px;font-weight:600;letter-spacing:-.01em}
+  p{margin:0;color:#5A6079;font-size:14px;line-height:1.6}
+  .hint{
+    margin-top:22px;font-size:12px;color:#A6ACC2;
+    font-family:ui-monospace,monospace;
+    background:#F7F8FC;padding:8px 14px;border-radius:8px;
+    display:inline-block;
+  }
+</style>
+</head>
+<body>
+  <div class="card">
+    <div class="badge">Module</div>
+    <h1>Teams</h1>
+    <p>Team directory and channels. Replace with your teams view.</p>
+    <div class="hint">modules/teams.html</div>
+  </div>
+</body>
+</html>
