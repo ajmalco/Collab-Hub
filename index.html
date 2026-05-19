@@ -9,8 +9,8 @@
 <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
 <style>
   :root {
-    --indigo: #5C68F2;
-    --indigo-deep: #4F5BE8;
+    --indigo: #123257;        /* BizBox primary blue */
+    --indigo-deep: #0D2440;   /* a touch darker for any hover/accents */
     --page:   #F4F5F9;
     --ink:    #2A2F45;
     --ink-2:  #5A6079;
@@ -18,6 +18,11 @@
     --sidebar-w: 230px;
     --sidebar-w-collapsed: 76px;
     --ease: cubic-bezier(0.4, 0.0, 0.2, 1);
+    /* Color the active sidebar item bleeds out to. Set per-module via
+       data-active-bg on the nav link; defaults to the page color so the
+       tab looks like an extension of the content area. RFC overrides
+       this to white so the active tab matches the RFC header. */
+    --active-bg: var(--page);
   }
 
   * { box-sizing: border-box; }
@@ -84,30 +89,6 @@
   .app.collapsed .logo { padding: 0; }
   .app.collapsed .logo .full { opacity: 0; }
   .app.collapsed .logo .mini { opacity: 1; }
-
-  /* collapse toggle */
-  .toggle {
-    position: absolute;
-    top: 34px;
-    right: -13px;
-    width: 26px; height: 26px;
-    border-radius: 50%;
-    background: #fff;
-    border: 0;
-    cursor: pointer;
-    display: grid;
-    place-items: center;
-    color: var(--indigo);
-    box-shadow: 0 3px 10px -2px rgba(40, 45, 75, 0.22);
-    z-index: 5;
-    transition: background 0.15s;
-  }
-  .toggle:hover { background: #F8F9FF; }
-  .toggle svg {
-    width: 13px; height: 13px;
-    transition: transform 0.28s var(--ease);
-  }
-  .app.collapsed .toggle svg { transform: rotate(180deg); }
 
   /* nav */
   .nav {
@@ -189,13 +170,16 @@
     transform: translateY(-50%) translateX(0);
   }
 
-  /* active state — notch effect */
+  /* active state — notch effect. Uses --active-bg so each module can
+     set its own "extending color" to match whatever is rendered just
+     past the sidebar's edge (e.g. white for RFC's header strip). */
   .nav a.active {
-    background: var(--page);
+    background: var(--active-bg);
     color: var(--ink);
     font-weight: 500;
     margin-right: -18px;
     border-radius: 22px 0 0 22px;
+    transition: background .2s, color .2s;
   }
   .nav a.active svg { stroke: var(--indigo); }
   .nav a.active::before,
@@ -209,11 +193,11 @@
   }
   .nav a.active::before {
     top: -22px;
-    background: radial-gradient(circle at 0 0, transparent 22px, var(--page) 22px);
+    background: radial-gradient(circle at 0 0, transparent 22px, var(--active-bg) 22px);
   }
   .nav a.active::after {
     bottom: -22px;
-    background: radial-gradient(circle at 0 100%, transparent 22px, var(--page) 22px);
+    background: radial-gradient(circle at 0 100%, transparent 22px, var(--active-bg) 22px);
   }
   /* In collapsed mode the nav padding shrinks, so the active item only needs
      to extend negatively by that smaller amount to reach the sidebar edge. */
@@ -347,18 +331,12 @@
       <span class="mini">P</span>
     </div>
 
-    <button class="toggle" id="toggleBtn" title="Collapse sidebar" aria-label="Toggle sidebar">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
-        <path d="M15 18l-6-6 6-6"/>
-      </svg>
-    </button>
-
     <nav class="nav" id="nav">
       <a data-module="home" data-label="Home">
         <svg viewBox="0 0 24 24"><path d="M3 11l9-8 9 8v10a2 2 0 0 1-2 2h-4v-7H9v7H5a2 2 0 0 1-2-2V11z"/></svg>
         <span class="label">Home</span>
       </a>
-      <a data-module="rfc" data-label="RFC">
+      <a data-module="rfc" data-label="RFC" data-active-bg="#ffffff">
         <svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6M9 13h6M9 17h6M9 9h2"/></svg>
         <span class="label">RFC</span>
       </a>
@@ -411,12 +389,16 @@
   const sidebar   = document.getElementById('sidebar');
   const frameHost = document.getElementById('frameHost');
   const loading   = document.getElementById('loading');
-  const toggleBtn = document.getElementById('toggleBtn');
   const links     = document.querySelectorAll('[data-module]');
 
   function setActive(linkEl) {
     links.forEach(a => a.classList.remove('active'));
     linkEl.classList.add('active');
+    // Each nav item can declare its own "extends-to-content" color via
+    // data-active-bg. RFC uses white so the active tab seamlessly meets
+    // the RFC header. Default is the page color (#F4F5F9).
+    const bg = linkEl.dataset.activeBg || 'var(--page)';
+    document.documentElement.style.setProperty('--active-bg', bg);
   }
 
   /* ─────────────────────────────────────────────────────────────────
@@ -497,7 +479,6 @@
      - Click inside iframe  → collapse (sets user intent to collapsed)
      - Hover collapsed side → temporary visual expand (peek)
      - Mouse leaves sidebar → re-collapse if intent is collapsed
-     - Toggle button click  → flip the user intent
 
      `intentCollapsed` holds the user's logical state. `applyVisual` only
      toggles the CSS class. Hover changes the visual without touching
@@ -507,14 +488,11 @@
 
   function applyVisual(collapsed) {
     app.classList.toggle('collapsed', collapsed);
-    toggleBtn.title = collapsed ? 'Expand sidebar' : 'Collapse sidebar';
   }
   function setIntent(collapsed) {
     intentCollapsed = collapsed;
     applyVisual(collapsed);
   }
-
-  toggleBtn.addEventListener('click', () => setIntent(!intentCollapsed));
 
   /* Hover-to-peek */
   sidebar.addEventListener('mouseenter', () => {
