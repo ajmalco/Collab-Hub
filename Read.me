@@ -1,0 +1,19 @@
+# PROJEX
+
+A personal portal that centralizes documents and tools into one place.
+Each sidebar item opens a different module — calendar, Excel workbooks,
+design system, etc. — inside an embedded iframe.
+
+## Structure
+
+- `index.html` — the shell (sidebar + iframe router)
+- `modules/` — individual module pages
+  - `room-scheduler.html` — calendar, backed by a Google Apps Script
+  - `rfc.html` — embedded SharePoint Excel workbook
+  - `ui-guidelines.html` — design system viewer with GitHub sync / upload
+  - the rest are placeholders ready to be replaced
+
+## Updating a module
+
+Replace the corresponding file in `modules/` and commit. Within ~30
+seconds the live site picks up the change.
