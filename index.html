@@ -295,12 +295,22 @@
     overflow: hidden;
     background: var(--page);
   }
+  /* Each module gets its own persistent iframe — they stack at the same
+     position via absolute positioning, only the active one is visible.
+     Inactive iframes stay alive in the DOM, preserving their authenticated
+     sessions (SharePoint sign-in for RFC, Apps Script for Calendar, etc.)
+     so switching modules doesn't trigger a re-load or re-auth. */
   iframe.module {
+    position: absolute;
+    inset: 0;
     width: 100%;
     height: 100%;
     border: 0;
-    display: block;
     background: var(--page);
+    display: none;
+  }
+  iframe.module.active {
+    display: block;
   }
 
   /* loading overlay */
@@ -378,9 +388,10 @@
     </div>
   </aside>
 
-  <main class="frame-host">
+  <main class="frame-host" id="frameHost">
     <div class="loading on" id="loading"><div class="spinner"></div></div>
-    <iframe class="module" id="frame" src="modules/room-scheduler.html" title="Module"></iframe>
+    <!-- iframes are inserted dynamically by the script below — one per module,
+         kept alive after creation so signed-in state and loaded data persist. -->
   </main>
 
 </div>
@@ -398,7 +409,7 @@
 
   const app       = document.getElementById('app');
   const sidebar   = document.getElementById('sidebar');
-  const frame     = document.getElementById('frame');
+  const frameHost = document.getElementById('frameHost');
   const loading   = document.getElementById('loading');
   const toggleBtn = document.getElementById('toggleBtn');
   const links     = document.querySelectorAll('[data-module]');
@@ -408,16 +419,69 @@
     linkEl.classList.add('active');
   }
 
+  /* ─────────────────────────────────────────────────────────────────
+     Keep-alive iframe router
+     ─────────────────────────────────────────────────────────────────
+     Each module gets its own iframe, created on first open. After that
+     the iframe stays in the DOM forever — switching modules just toggles
+     which iframe is .active (display: block). This preserves:
+       - Sign-in state (RFC's SharePoint session — no re-auth on every
+         switch back from Calendar)
+       - Loaded data (Calendar's bookings stay in memory, no re-fetch)
+       - Local UI state (UI Guidelines' Configure modal position, etc.)
+
+     `iframes` maps each module key to its iframe element. `activeKey`
+     tracks which one is currently visible.
+     ───────────────────────────────────────────────────────────────── */
+  const iframes  = {};
+  let activeKey  = null;
+
   function loadModule(key, linkEl) {
     const url = MODULES[key];
     if (!url) return;
-    loading.classList.add('on');
-    frame.src = url;
+
+    // Clicking the same module that's already active — no-op. Avoids
+    // re-rendering an iframe that's already showing what the user wants.
+    if (key === activeKey) {
+      setActive(linkEl);
+      return;
+    }
+
+    // Hide the currently visible iframe (it stays in the DOM, just out
+    // of sight — preserves all its state).
+    if (activeKey && iframes[activeKey]) {
+      iframes[activeKey].classList.remove('active');
+    }
+
+    // Get-or-create the iframe for this module.
+    let frame = iframes[key];
+    if (!frame) {
+      // First time opening this module — create and start loading.
+      frame = document.createElement('iframe');
+      frame.className = 'module';
+      frame.title = key;
+      frame.setAttribute('data-module-key', key);
+      // 'allow' grants common capabilities the embedded modules need
+      // (clipboard for copy/paste, autoplay for any media, etc.). Doesn't
+      // affect security boundaries — iframe is still same-origin sandboxed.
+      frame.setAttribute('allow', 'clipboard-read; clipboard-write; autoplay');
+      frame.addEventListener('load', () => {
+        if (key === activeKey) loading.classList.remove('on');
+      });
+      frameHost.appendChild(frame);
+      iframes[key] = frame;
+      loading.classList.add('on');
+      frame.src = url;
+    } else {
+      // Already loaded — instant switch, no spinner.
+      loading.classList.remove('on');
+    }
+
+    frame.classList.add('active');
+    activeKey = key;
     setActive(linkEl);
     try { localStorage.setItem('projex.lastModule', key); } catch (_) {}
   }
-
-  frame.addEventListener('load', () => loading.classList.remove('on'));
 
   links.forEach(link => {
     link.addEventListener('click', (e) => {
@@ -479,14 +543,27 @@
   applyVisual(false);
   try { localStorage.removeItem('projex.sidebarCollapsed'); } catch (_) {}
 
-  /* Restore last opened module on refresh */
-  try {
-    const last = localStorage.getItem('projex.lastModule');
-    if (last && MODULES[last]) {
-      const el = document.querySelector(`[data-module="${last}"]`);
-      if (el) loadModule(last, el);
+  /* Boot a module. Prefer the last-opened one from a prior session; fall
+     back to whichever sidebar link starts with .active in markup (Calendar
+     by default). We always boot SOMETHING — the iframes are dynamic now,
+     so without this the content area would just show the loading spinner
+     forever. */
+  (function bootInitialModule() {
+    let key = null, el = null;
+    try {
+      const last = localStorage.getItem('projex.lastModule');
+      if (last && MODULES[last]) {
+        const node = document.querySelector(`[data-module="${last}"]`);
+        if (node) { key = last; el = node; }
+      }
+    } catch (_) {}
+    if (!key) {
+      el = document.querySelector('[data-module].active') ||
+           document.querySelector('[data-module]');
+      key = el && el.dataset.module;
     }
-  } catch (_) {}
+    if (key && el) loadModule(key, el);
+  })();
 </script>
 
 </body>
