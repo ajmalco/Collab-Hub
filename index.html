@@ -3,25 +3,23 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>Collab Hub</title>
+<title>PROJEX</title>
 <link rel="preconnect" href="https://fonts.googleapis.com" />
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
 <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
 <style>
   :root {
-    --indigo: #123257;        /* BizBox primary blue */
-    --indigo-deep: #0D2440;   /* a touch darker for any hover/accents */
+    --indigo: #123257;
+    --indigo-deep: #0D2440;
     --page:   #F4F5F9;
     --ink:    #2A2F45;
     --ink-2:  #5A6079;
     --muted:  #A6ACC2;
+    --line:   #ECEEF3;
+    --red:    #E66A6A;
     --sidebar-w: 230px;
     --sidebar-w-collapsed: 76px;
     --ease: cubic-bezier(0.4, 0.0, 0.2, 1);
-    /* Color the active sidebar item bleeds out to. Set per-module via
-       data-active-bg on the nav link; defaults to the page color so the
-       tab looks like an extension of the content area. RFC overrides
-       this to white so the active tab matches the RFC header. */
     --active-bg: var(--page);
   }
 
@@ -56,8 +54,6 @@
     overflow: visible;
   }
 
-  /* logo row — uses margin-bottom for spacing (not padding) so height stays
-     clean and the absolutely-positioned mini-P can center inside it. */
   .logo {
     position: relative;
     height: 28px;
@@ -70,9 +66,7 @@
     align-items: center;
     transition: padding 0.28s var(--ease);
   }
-  .logo .full {
-    transition: opacity 0.18s var(--ease);
-  }
+  .logo .full { transition: opacity 0.18s var(--ease); }
   .logo .mini {
     position: absolute;
     inset: 0;
@@ -90,7 +84,6 @@
   .app.collapsed .logo .full { opacity: 0; }
   .app.collapsed .logo .mini { opacity: 1; }
 
-  /* nav */
   .nav {
     display: flex;
     flex-direction: column;
@@ -129,10 +122,9 @@
     overflow: hidden;
     display: inline-block;
     max-width: 200px;
+    flex: 1;
   }
 
-  /* collapsed nav styling — zero gap, padding squares the item so the icon
-     ends up perfectly centered without floating off-axis. */
   .app.collapsed .nav a {
     padding: 12px;
     gap: 0;
@@ -144,8 +136,7 @@
     pointer-events: none;
   }
 
-  /* tooltip for collapsed nav items — :not(.active) keeps the active item's
-     ::before free for the notch effect. */
+  /* tooltip for collapsed non-active items */
   .app.collapsed .nav a:not(.active)::before {
     content: attr(data-label);
     position: absolute;
@@ -170,9 +161,7 @@
     transform: translateY(-50%) translateX(0);
   }
 
-  /* active state — notch effect. Uses --active-bg so each module can
-     set its own "extending color" to match whatever is rendered just
-     past the sidebar's edge (e.g. white for RFC's header strip). */
+  /* active state — notch effect */
   .nav a.active {
     background: var(--active-bg);
     color: var(--ink);
@@ -199,18 +188,107 @@
     bottom: -22px;
     background: radial-gradient(circle at 0 100%, transparent 22px, var(--active-bg) 22px);
   }
-  /* In collapsed mode the nav padding shrinks, so the active item only needs
-     to extend negatively by that smaller amount to reach the sidebar edge. */
   .app.collapsed .nav a.active { margin-right: -14px; }
 
-  /* sign-out */
-  .sign-out {
+  /* admin-mode affordances on nav items — small edit/delete icons that
+     appear on hover when the body has .admin. Hidden entirely otherwise. */
+  .admin-actions {
+    display: none;
+    align-items: center;
+    gap: 2px;
+    margin-left: auto;
+    padding-left: 4px;
+  }
+  .admin-actions button {
+    background: transparent;
+    border: 0;
+    color: rgba(255,255,255,0.55);
+    padding: 4px;
+    border-radius: 5px;
+    cursor: pointer;
+    display: grid;
+    place-items: center;
+    transition: background 0.15s, color 0.15s;
+  }
+  .admin-actions button:hover {
+    background: rgba(255,255,255,0.12);
+    color: #fff;
+  }
+  .admin-actions svg {
+    width: 14px;
+    height: 14px;
+    stroke-width: 2;
+  }
+  body.admin .nav a:hover .admin-actions { display: flex; }
+  body.admin .nav a.active:hover .admin-actions { display: flex; }
+  body.admin .nav a.active .admin-actions button {
+    color: var(--ink-2);
+  }
+  body.admin .nav a.active .admin-actions button:hover {
+    background: rgba(40, 45, 75, 0.08);
+    color: var(--ink);
+  }
+  /* hide admin-actions when sidebar is collapsed (no room) */
+  .app.collapsed .admin-actions { display: none !important; }
+
+  /* add-module button — only visible in admin mode */
+  .add-module {
+    display: none;
+    align-items: center;
+    gap: 14px;
+    padding: 11px 16px;
+    color: rgba(255,255,255,0.65);
+    font-size: 13px;
+    font-weight: 500;
+    text-decoration: none;
+    border-radius: 12px;
+    cursor: pointer;
+    border: 1px dashed rgba(255,255,255,0.18);
+    margin-top: 6px;
+    transition: background 0.15s, color 0.15s, border-color 0.15s;
+  }
+  .add-module:hover {
+    background: rgba(255,255,255,0.06);
+    color: #fff;
+    border-color: rgba(255,255,255,0.35);
+  }
+  .add-module svg { width: 16px; height: 16px; stroke: currentColor; fill: none; stroke-width: 2; flex-shrink: 0; }
+  body.admin .add-module { display: flex; }
+  .app.collapsed .add-module { padding: 12px; justify-content: center; gap: 0; }
+  .app.collapsed .add-module .label { display: none; }
+
+  /* admin badge in the logo strip */
+  .admin-pill {
+    display: none;
+    align-items: center;
+    gap: 5px;
+    background: rgba(244, 162, 97, 0.18);
+    color: #F4A261;
+    font-size: 10px;
+    font-weight: 600;
+    letter-spacing: 0.6px;
+    padding: 3px 8px;
+    border-radius: 999px;
+    margin-left: 10px;
+    text-transform: uppercase;
+  }
+  body.admin .admin-pill { display: inline-flex; }
+  .admin-pill::before {
+    content: '';
+    width: 5px; height: 5px;
+    border-radius: 50%;
+    background: #F4A261;
+  }
+  .app.collapsed .admin-pill { display: none !important; }
+
+  /* ============ SIGN IN / OUT BAR ============ */
+  .sign-bar {
     margin-top: auto;
     padding: 0 18px;
     transition: padding 0.28s var(--ease);
   }
-  .app.collapsed .sign-out { padding: 0 14px; }
-  .sign-out a {
+  .app.collapsed .sign-bar { padding: 0 14px; }
+  .sign-bar a {
     display: flex;
     align-items: center;
     gap: 14px;
@@ -224,8 +302,8 @@
     white-space: nowrap;
     position: relative;
   }
-  .sign-out a:hover { background: rgba(255,255,255,0.08); }
-  .sign-out svg {
+  .sign-bar a:hover { background: rgba(255,255,255,0.08); }
+  .sign-bar svg {
     width: 20px;
     height: 20px;
     stroke: #fff;
@@ -233,23 +311,23 @@
     fill: none;
     flex-shrink: 0;
   }
-  .sign-out a .label {
+  .sign-bar a .label {
     transition: opacity 0.15s var(--ease), max-width 0.28s var(--ease);
     overflow: hidden;
     display: inline-block;
     max-width: 200px;
   }
-  .app.collapsed .sign-out a {
+  .app.collapsed .sign-bar a {
     padding: 12px;
     gap: 0;
     justify-content: center;
   }
-  .app.collapsed .sign-out a .label {
+  .app.collapsed .sign-bar a .label {
     opacity: 0;
     max-width: 0;
     pointer-events: none;
   }
-  .app.collapsed .sign-out a::before {
+  .app.collapsed .sign-bar a::before {
     content: attr(data-label);
     position: absolute;
     left: calc(100% + 14px);
@@ -268,7 +346,7 @@
     z-index: 100;
     box-shadow: 0 6px 16px -4px rgba(40,45,75,0.4);
   }
-  .app.collapsed .sign-out a:hover::before {
+  .app.collapsed .sign-bar a:hover::before {
     opacity: 1;
     transform: translateY(-50%) translateX(0);
   }
@@ -279,11 +357,6 @@
     overflow: hidden;
     background: var(--page);
   }
-  /* Each module gets its own persistent iframe — they stack at the same
-     position via absolute positioning, only the active one is visible.
-     Inactive iframes stay alive in the DOM, preserving their authenticated
-     sessions (SharePoint sign-in for RFC, Apps Script for Calendar, etc.)
-     so switching modules doesn't trigger a re-load or re-auth. */
   iframe.module {
     position: absolute;
     inset: 0;
@@ -293,11 +366,8 @@
     background: var(--page);
     display: none;
   }
-  iframe.module.active {
-    display: block;
-  }
+  iframe.module.active { display: block; }
 
-  /* loading overlay */
   .loading {
     position: absolute;
     inset: 0;
@@ -319,6 +389,126 @@
   }
   @keyframes spin { to { transform: rotate(360deg); } }
 
+  /* ============ MODALS ============ */
+  .modal-backdrop {
+    position: fixed;
+    inset: 0;
+    background: rgba(18, 23, 40, 0.55);
+    backdrop-filter: blur(4px);
+    display: none;
+    z-index: 1000;
+    align-items: center;
+    justify-content: center;
+    padding: 28px;
+  }
+  .modal-backdrop.on { display: flex; }
+  .modal {
+    background: #fff;
+    border-radius: 16px;
+    width: 100%;
+    max-width: 420px;
+    max-height: calc(100vh - 56px);
+    overflow: auto;
+    box-shadow: 0 30px 70px -20px rgba(20,22,38,0.4);
+    font-family: inherit;
+  }
+  .modal-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 22px 24px 6px;
+  }
+  .modal-head h2 {
+    margin: 0;
+    font-size: 17px;
+    font-weight: 600;
+    letter-spacing: -0.01em;
+    color: var(--ink);
+  }
+  .modal .close {
+    background: transparent;
+    border: 0;
+    cursor: pointer;
+    color: var(--muted);
+    padding: 4px;
+    border-radius: 6px;
+    display: grid;
+    place-items: center;
+  }
+  .modal .close:hover { background: var(--page); color: var(--ink); }
+  .modal .close svg { width: 18px; height: 18px; stroke: currentColor; fill: none; stroke-width: 2; }
+  .modal-body { padding: 14px 24px 8px; }
+  .modal-body label {
+    display: block;
+    font-size: 12px;
+    font-weight: 500;
+    color: var(--ink-2);
+    margin: 12px 0 6px;
+  }
+  .modal-body label:first-child { margin-top: 0; }
+  .modal-body input[type="text"],
+  .modal-body input[type="password"],
+  .modal-body input[type="url"] {
+    width: 100%;
+    padding: 10px 12px;
+    border-radius: 9px;
+    border: 1px solid var(--line);
+    font-family: inherit;
+    font-size: 14px;
+    color: var(--ink);
+    background: var(--page);
+    transition: border-color 0.15s, background 0.15s;
+  }
+  .modal-body input:focus {
+    outline: none;
+    border-color: var(--indigo);
+    background: #fff;
+  }
+  .modal-body .hint {
+    font-size: 11px;
+    color: var(--muted);
+    margin-top: 6px;
+    line-height: 1.5;
+  }
+  .modal-body .error {
+    margin-top: 10px;
+    padding: 9px 12px;
+    background: #FCEDED;
+    color: var(--red);
+    border-radius: 8px;
+    font-size: 12px;
+    font-weight: 500;
+  }
+  .modal-foot {
+    display: flex;
+    justify-content: flex-end;
+    gap: 8px;
+    padding: 14px 24px 22px;
+  }
+  .modal-foot .left { margin-right: auto; }
+  .modal-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 9px 16px;
+    border-radius: 9px;
+    font-family: inherit;
+    font-size: 13px;
+    font-weight: 500;
+    border: 0;
+    cursor: pointer;
+    background: transparent;
+    color: var(--ink-2);
+    transition: background 0.15s;
+  }
+  .modal-btn:hover { background: var(--page); color: var(--ink); }
+  .modal-btn.primary {
+    background: var(--indigo);
+    color: #fff;
+  }
+  .modal-btn.primary:hover { background: var(--indigo-deep); color: #fff; }
+  .modal-btn.danger { color: var(--red); }
+  .modal-btn.danger:hover { background: #FCEDED; color: var(--red); }
 </style>
 </head>
 <body>
@@ -329,123 +519,157 @@
     <div class="logo">
       <span class="full">PROJEX</span>
       <span class="mini">P</span>
+      <span class="admin-pill">Admin</span>
     </div>
 
-    <nav class="nav" id="nav">
-      <a data-module="home" data-label="Home">
-        <svg viewBox="0 0 24 24"><path d="M3 11l9-8 9 8v10a2 2 0 0 1-2 2h-4v-7H9v7H5a2 2 0 0 1-2-2V11z"/></svg>
-        <span class="label">Home</span>
-      </a>
-      <a data-module="rfc" data-label="RFC" data-active-bg="#ffffff">
-        <svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6M9 13h6M9 17h6M9 9h2"/></svg>
-        <span class="label">RFC</span>
-      </a>
-      <a data-module="calendar" data-label="Calendar" class="active">
-        <svg viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 9h18M8 3v4M16 3v4"/></svg>
-        <span class="label">Calendar</span>
-      </a>
-      <a data-module="ui-guidelines" data-label="UI Guidelines">
-        <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 3a9 9 0 0 0 0 18M3 12h18"/><circle cx="12" cy="12" r="3"/></svg>
-        <span class="label">UI Guidelines</span>
-      </a>
-      <a data-module="food-tracker" data-label="Food Tracker">
-        <svg viewBox="0 0 24 24"><path d="M12 7.5c-2-3.5-7-2.5-7 3 0 4 3 11 7 11s7-7 7-11c0-5.5-5-6.5-7-3z"/><path d="M12 7.5C12 5 13.5 3 16 3"/></svg>
-        <span class="label">Food Tracker</span>
-      </a>
-      <a data-module="brand-asset" data-label="Brand Asset">
-        <svg viewBox="0 0 24 24"><path d="M12 2C6.5 2 2 6.5 2 12s4.5 10 10 10c.6 0 1-.4 1-1 0-.3-.1-.5-.3-.7-.2-.2-.3-.4-.3-.6 0-.6.4-1 1-1H15c3.3 0 6-2.7 6-6 0-5-4-9-9-9z"/><circle cx="6.5" cy="12.5" r="1.3" fill="currentColor" stroke="none"/><circle cx="8.5" cy="7.5" r="1.3" fill="currentColor" stroke="none"/><circle cx="13.5" cy="6.5" r="1.3" fill="currentColor" stroke="none"/><circle cx="17.5" cy="10.5" r="1.3" fill="currentColor" stroke="none"/></svg>
-        <span class="label">Brand Asset</span>
-      </a>
-    </nav>
+    <nav class="nav" id="nav"></nav>
 
-    <div class="sign-out">
-      <a data-label="Sign out">
-        <svg viewBox="0 0 24 24"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4M16 17l5-5-5-5M21 12H9"/></svg>
-        <span class="label">Sign out</span>
+    <div class="sign-bar" id="signBar">
+      <a id="signInOutBtn" data-label="Sign in">
+        <svg viewBox="0 0 24 24" id="signInOutIcon"></svg>
+        <span class="label" id="signInOutLabel">Sign in</span>
       </a>
     </div>
   </aside>
 
   <main class="frame-host" id="frameHost">
     <div class="loading on" id="loading"><div class="spinner"></div></div>
-    <!-- iframes are inserted dynamically by the script below — one per module,
-         kept alive after creation so signed-in state and loaded data persist. -->
   </main>
 
 </div>
 
+<!-- Sign-in modal -->
+<div class="modal-backdrop" id="signInModal">
+  <div class="modal">
+    <div class="modal-head">
+      <h2>Admin sign in</h2>
+      <button class="close" id="signInClose"><svg viewBox="0 0 24 24"><path d="M18 6L6 18M6 6l12 12"/></svg></button>
+    </div>
+    <div class="modal-body">
+      <label for="adminCode">Admin code</label>
+      <input type="password" id="adminCode" placeholder="Enter code" autocomplete="off" />
+      <div class="hint">Admins can add, edit, and delete modules from the sidebar.</div>
+      <div class="error" id="signInError" style="display:none">Incorrect code. Try again.</div>
+    </div>
+    <div class="modal-foot">
+      <button class="modal-btn" id="signInCancel">Cancel</button>
+      <button class="modal-btn primary" id="signInSubmit">Sign in</button>
+    </div>
+  </div>
+</div>
+
+<!-- Module edit/add modal -->
+<div class="modal-backdrop" id="moduleModal">
+  <div class="modal">
+    <div class="modal-head">
+      <h2 id="moduleModalTitle">Edit module</h2>
+      <button class="close" id="moduleClose"><svg viewBox="0 0 24 24"><path d="M18 6L6 18M6 6l12 12"/></svg></button>
+    </div>
+    <div class="modal-body">
+      <label for="moduleLabelInput">Module name</label>
+      <input type="text" id="moduleLabelInput" placeholder="e.g. Reports" />
+      <label for="moduleUrlInput">URL</label>
+      <input type="text" id="moduleUrlInput" placeholder="modules/foo.html or https://..." spellcheck="false" />
+      <div class="hint">Use a relative path for files inside your repo, or a full URL for embedded sites.</div>
+    </div>
+    <div class="modal-foot">
+      <div class="left">
+        <button class="modal-btn danger" id="moduleDelete" style="display:none">Delete</button>
+      </div>
+      <button class="modal-btn" id="moduleCancel">Cancel</button>
+      <button class="modal-btn primary" id="moduleSubmit">Save</button>
+    </div>
+  </div>
+</div>
+
 <script>
-  /* ---------- Module manifest ---------- */
-  const MODULES = {
-    'home':           'modules/home.html',
-    'rfc':            'modules/rfc.html',
-    'calendar':       'modules/room-scheduler.html',
-    'ui-guidelines':  'modules/ui-guidelines.html',
-    'food-tracker':   'modules/food-tracker.html',
-    'brand-asset':    'modules/brand-asset.html',
-  };
+  /* ============================================================
+     PROJEX shell — dynamic module routing with admin mode
+     ============================================================ */
 
-  const app       = document.getElementById('app');
-  const sidebar   = document.getElementById('sidebar');
-  const frameHost = document.getElementById('frameHost');
-  const loading   = document.getElementById('loading');
-  const links     = document.querySelectorAll('[data-module]');
+  const ADMIN_CODE = '298266';
 
-  function setActive(linkEl) {
-    links.forEach(a => a.classList.remove('active'));
-    linkEl.classList.add('active');
-    // Each nav item can declare its own "extends-to-content" color via
-    // data-active-bg. RFC uses white so the active tab seamlessly meets
-    // the RFC header. Default is the page color (#F4F5F9).
-    const bg = linkEl.dataset.activeBg || 'var(--page)';
-    document.documentElement.style.setProperty('--active-bg', bg);
+  /* Built-in modules. The shape `iconPaths` is raw SVG inner-markup so
+     it can be stored as a string and re-injected for user-added modules.
+     `activeBg` is optional and overrides the active-tab bleed color. */
+  const DEFAULT_MODULES = [
+    { key: 'home',          label: 'Home',          url: 'modules/home.html',
+      iconPaths: '<path d="M3 11l9-8 9 8v10a2 2 0 0 1-2 2h-4v-7H9v7H5a2 2 0 0 1-2-2V11z"/>' },
+    { key: 'rfc',           label: 'RFC',           url: 'modules/rfc.html', activeBg: '#ffffff',
+      iconPaths: '<path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6M9 13h6M9 17h6M9 9h2"/>' },
+    { key: 'calendar',      label: 'Calendar',      url: 'modules/room-scheduler.html',
+      iconPaths: '<rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 9h18M8 3v4M16 3v4"/>' },
+    { key: 'ui-guidelines', label: 'UI Guidelines', url: 'modules/ui-guidelines.html',
+      iconPaths: '<circle cx="12" cy="12" r="9"/><path d="M12 3a9 9 0 0 0 0 18M3 12h18"/><circle cx="12" cy="12" r="3"/>' },
+    { key: 'food-tracker',  label: 'Food Tracker', activeBg: '#ffffff',
+      url: 'https://script.google.com/a/macros/bizbox.ph/s/AKfycbzHYzfM0AAoNXDMjDzrcrGZmCk-znngOdJFbAr4bj_iP0ptIwD__pbMoW6dRGaG7GnU/exec',
+      iconPaths: '<path d="M12 7.5c-2-3.5-7-2.5-7 3 0 4 3 11 7 11s7-7 7-11c0-5.5-5-6.5-7-3z"/><path d="M12 7.5C12 5 13.5 3 16 3"/>' },
+    { key: 'brand-asset',   label: 'Brand Asset',   url: 'modules/brand-asset.html',
+      iconPaths: '<path d="M12 2C6.5 2 2 6.5 2 12s4.5 10 10 10c.6 0 1-.4 1-1 0-.3-.1-.5-.3-.7-.2-.2-.3-.4-.3-.6 0-.6.4-1 1-1H15c3.3 0 6-2.7 6-6 0-5-4-9-9-9z"/><circle cx="6.5" cy="12.5" r="1.3" fill="currentColor" stroke="none"/><circle cx="8.5" cy="7.5" r="1.3" fill="currentColor" stroke="none"/><circle cx="13.5" cy="6.5" r="1.3" fill="currentColor" stroke="none"/><circle cx="17.5" cy="10.5" r="1.3" fill="currentColor" stroke="none"/>' },
+  ];
+
+  /* Generic icon used for newly-added modules until admin edits it. */
+  const GENERIC_ICON = '<rect x="3" y="3" width="18" height="18" rx="3"/><path d="M3 9h18M9 21V9"/>';
+
+  /* SVG inner-markup for the sign-in / sign-out icons. */
+  const SIGNIN_ICON  = '<path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4M10 17l5-5-5-5M15 12H3"/>';
+  const SIGNOUT_ICON = '<path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4M16 17l5-5-5-5M21 12H9"/>';
+
+  /* ---------- state helpers ---------- */
+  function isAdmin() {
+    try { return localStorage.getItem('projex.admin') === '1'; } catch (_) { return false; }
+  }
+  function setAdminState(yes) {
+    try {
+      if (yes) localStorage.setItem('projex.admin', '1');
+      else localStorage.removeItem('projex.admin');
+    } catch (_) {}
+    document.body.classList.toggle('admin', yes);
+    updateSignBar();
+    renderNav();
+  }
+  function getModules() {
+    try {
+      const saved = localStorage.getItem('projex.modules');
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        if (Array.isArray(parsed) && parsed.length) return parsed;
+      }
+    } catch (_) {}
+    return DEFAULT_MODULES.slice();
+  }
+  function saveModules(modules) {
+    try { localStorage.setItem('projex.modules', JSON.stringify(modules)); } catch (_) {}
   }
 
-  /* ─────────────────────────────────────────────────────────────────
-     Keep-alive iframe router
-     ─────────────────────────────────────────────────────────────────
-     Each module gets its own iframe, created on first open. After that
-     the iframe stays in the DOM forever — switching modules just toggles
-     which iframe is .active (display: block). This preserves:
-       - Sign-in state (RFC's SharePoint session — no re-auth on every
-         switch back from Calendar)
-       - Loaded data (Calendar's bookings stay in memory, no re-fetch)
-       - Local UI state (UI Guidelines' Configure modal position, etc.)
+  /* ---------- DOM refs ---------- */
+  const app       = document.getElementById('app');
+  const sidebar   = document.getElementById('sidebar');
+  const nav       = document.getElementById('nav');
+  const frameHost = document.getElementById('frameHost');
+  const loading   = document.getElementById('loading');
 
-     `iframes` maps each module key to its iframe element. `activeKey`
-     tracks which one is currently visible.
-     ───────────────────────────────────────────────────────────────── */
+  /* ---------- iframe keep-alive router ---------- */
   const iframes  = {};
   let activeKey  = null;
 
-  function loadModule(key, linkEl) {
-    const url = MODULES[key];
-    if (!url) return;
+  function loadModule(key) {
+    const modules = getModules();
+    const m = modules.find(x => x.key === key);
+    if (!m) return;
 
-    // Clicking the same module that's already active — no-op. Avoids
-    // re-rendering an iframe that's already showing what the user wants.
     if (key === activeKey) {
-      setActive(linkEl);
+      setActiveLink(key);
       return;
     }
-
-    // Hide the currently visible iframe (it stays in the DOM, just out
-    // of sight — preserves all its state).
     if (activeKey && iframes[activeKey]) {
       iframes[activeKey].classList.remove('active');
     }
-
-    // Get-or-create the iframe for this module.
     let frame = iframes[key];
     if (!frame) {
-      // First time opening this module — create and start loading.
       frame = document.createElement('iframe');
       frame.className = 'module';
       frame.title = key;
-      frame.setAttribute('data-module-key', key);
-      // 'allow' grants common capabilities the embedded modules need
-      // (clipboard for copy/paste, autoplay for any media, etc.). Doesn't
-      // affect security boundaries — iframe is still same-origin sandboxed.
       frame.setAttribute('allow', 'clipboard-read; clipboard-write; autoplay');
       frame.addEventListener('load', () => {
         if (key === activeKey) loading.classList.remove('on');
@@ -453,62 +677,249 @@
       frameHost.appendChild(frame);
       iframes[key] = frame;
       loading.classList.add('on');
-      frame.src = url;
+      frame.src = m.url;
     } else {
-      // Already loaded — instant switch, no spinner.
       loading.classList.remove('on');
     }
-
     frame.classList.add('active');
     activeKey = key;
-    setActive(linkEl);
+    setActiveLink(key);
     try { localStorage.setItem('projex.lastModule', key); } catch (_) {}
   }
 
-  links.forEach(link => {
-    link.addEventListener('click', (e) => {
-      e.preventDefault();
-      loadModule(link.dataset.module, link);
+  function setActiveLink(key) {
+    nav.querySelectorAll('a[data-module]').forEach(a => a.classList.remove('active'));
+    const el = nav.querySelector('a[data-module="' + CSS.escape(key) + '"]');
+    if (el) {
+      el.classList.add('active');
+      const bg = el.dataset.activeBg || 'var(--page)';
+      document.documentElement.style.setProperty('--active-bg', bg);
+    }
+  }
+
+  /* ---------- nav rendering ---------- */
+
+  function renderNav() {
+    const modules = getModules();
+    nav.innerHTML = '';
+    modules.forEach(m => {
+      const a = document.createElement('a');
+      a.dataset.module = m.key;
+      a.dataset.label  = m.label;
+      if (m.activeBg) a.dataset.activeBg = m.activeBg;
+      a.innerHTML =
+        '<svg viewBox="0 0 24 24">' + (m.iconPaths || GENERIC_ICON) + '</svg>' +
+        '<span class="label">' + escapeHtml(m.label) + '</span>' +
+        '<span class="admin-actions" aria-hidden="true">' +
+          '<button class="edit-btn" title="Edit module"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M12 20h9M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/></svg></button>' +
+          '<button class="delete-btn" title="Delete module"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M3 6h18M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6"/></svg></button>' +
+        '</span>';
+
+      a.addEventListener('click', (e) => {
+        if (e.target.closest('.edit-btn')) {
+          e.preventDefault(); e.stopPropagation();
+          openModuleModal(m.key);
+          return;
+        }
+        if (e.target.closest('.delete-btn')) {
+          e.preventDefault(); e.stopPropagation();
+          deleteModule(m.key);
+          return;
+        }
+        e.preventDefault();
+        loadModule(m.key);
+      });
+      nav.appendChild(a);
     });
+
+    /* "+ Add module" button — only inserted into the DOM when admin.
+       Non-admin visitors never get this element at all, so there's no
+       chance of it leaking visually through a stale CSS state. */
+    if (isAdmin()) {
+      const add = document.createElement('a');
+      add.className = 'add-module';
+      add.innerHTML =
+        '<svg viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg>' +
+        '<span class="label">Add module</span>';
+      add.addEventListener('click', (e) => {
+        e.preventDefault();
+        openModuleModal(null);
+      });
+      nav.appendChild(add);
+    }
+
+    /* Re-apply active state for the currently-loaded module */
+    if (activeKey) setActiveLink(activeKey);
+  }
+
+  function escapeHtml(s) {
+    return String(s == null ? '' : s)
+      .replace(/&/g, '&amp;').replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+  }
+
+  /* ---------- sign-in / sign-out ---------- */
+
+  const signInBtn   = document.getElementById('signInOutBtn');
+  const signInLabel = document.getElementById('signInOutLabel');
+  const signInIcon  = document.getElementById('signInOutIcon');
+
+  function updateSignBar() {
+    const admin = isAdmin();
+    signInLabel.textContent = admin ? 'Sign out' : 'Sign in';
+    signInBtn.dataset.label = admin ? 'Sign out' : 'Sign in';
+    signInIcon.innerHTML    = admin ? SIGNOUT_ICON : SIGNIN_ICON;
+  }
+
+  signInBtn.addEventListener('click', (e) => {
+    e.preventDefault();
+    if (isAdmin()) {
+      setAdminState(false);
+    } else {
+      openSignInModal();
+    }
+  });
+
+  /* sign-in modal */
+  const signInModal  = document.getElementById('signInModal');
+  const adminCode    = document.getElementById('adminCode');
+  const signInError  = document.getElementById('signInError');
+  const signInSubmit = document.getElementById('signInSubmit');
+
+  function openSignInModal() {
+    signInError.style.display = 'none';
+    adminCode.value = '';
+    signInModal.classList.add('on');
+    setTimeout(() => adminCode.focus(), 50);
+  }
+  function closeSignInModal() {
+    signInModal.classList.remove('on');
+  }
+  function submitSignIn() {
+    if (adminCode.value.trim() === ADMIN_CODE) {
+      closeSignInModal();
+      setAdminState(true);
+    } else {
+      signInError.style.display = 'block';
+      adminCode.select();
+    }
+  }
+
+  document.getElementById('signInClose').addEventListener('click', closeSignInModal);
+  document.getElementById('signInCancel').addEventListener('click', closeSignInModal);
+  signInSubmit.addEventListener('click', submitSignIn);
+  adminCode.addEventListener('keydown', (e) => { if (e.key === 'Enter') submitSignIn(); });
+  signInModal.addEventListener('click', (e) => { if (e.target === signInModal) closeSignInModal(); });
+
+  /* ---------- module edit / add modal ---------- */
+
+  const moduleModal      = document.getElementById('moduleModal');
+  const moduleTitle      = document.getElementById('moduleModalTitle');
+  const moduleLabelInput = document.getElementById('moduleLabelInput');
+  const moduleUrlInput   = document.getElementById('moduleUrlInput');
+  const moduleSubmit     = document.getElementById('moduleSubmit');
+  const moduleDelete     = document.getElementById('moduleDelete');
+  let   editingKey       = null;  // null = add mode
+
+  function openModuleModal(key) {
+    editingKey = key;
+    if (key) {
+      const m = getModules().find(x => x.key === key);
+      moduleTitle.textContent = 'Edit module';
+      moduleLabelInput.value = m ? m.label : '';
+      moduleUrlInput.value   = m ? m.url   : '';
+      moduleDelete.style.display = '';
+    } else {
+      moduleTitle.textContent = 'Add module';
+      moduleLabelInput.value = '';
+      moduleUrlInput.value   = '';
+      moduleDelete.style.display = 'none';
+    }
+    moduleModal.classList.add('on');
+    setTimeout(() => moduleLabelInput.focus(), 50);
+  }
+  function closeModuleModal() {
+    moduleModal.classList.remove('on');
+    editingKey = null;
+  }
+
+  function submitModuleForm() {
+    const label = moduleLabelInput.value.trim();
+    const url   = moduleUrlInput.value.trim();
+    if (!label || !url) {
+      moduleLabelInput.focus();
+      return;
+    }
+    const modules = getModules();
+    if (editingKey) {
+      const idx = modules.findIndex(x => x.key === editingKey);
+      if (idx >= 0) {
+        modules[idx] = { ...modules[idx], label, url };
+        saveModules(modules);
+        /* If a kept-alive iframe exists for this key and the URL changed,
+           swap its src so the change takes effect immediately. */
+        if (iframes[editingKey] && modules[idx].url) {
+          iframes[editingKey].src = modules[idx].url;
+        }
+      }
+    } else {
+      /* Generate a slug key from the label; ensure uniqueness. */
+      const baseKey = label.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '') || 'module';
+      let key = baseKey, n = 2;
+      while (modules.find(x => x.key === key)) { key = baseKey + '-' + n++; }
+      modules.push({ key, label, url, iconPaths: GENERIC_ICON });
+      saveModules(modules);
+    }
+    renderNav();
+    closeModuleModal();
+  }
+
+  function deleteModule(key) {
+    if (!confirm('Delete this module from the sidebar?')) return;
+    const modules = getModules().filter(x => x.key !== key);
+    saveModules(modules);
+    /* If we just deleted the active module, swap to whatever's first. */
+    if (key === activeKey) {
+      if (iframes[key]) {
+        iframes[key].remove();
+        delete iframes[key];
+      }
+      activeKey = null;
+      const next = modules[0];
+      if (next) loadModule(next.key);
+    } else if (iframes[key]) {
+      iframes[key].remove();
+      delete iframes[key];
+    }
+    renderNav();
+    closeModuleModal();
+  }
+
+  document.getElementById('moduleClose').addEventListener('click', closeModuleModal);
+  document.getElementById('moduleCancel').addEventListener('click', closeModuleModal);
+  moduleSubmit.addEventListener('click', submitModuleForm);
+  moduleDelete.addEventListener('click', () => { if (editingKey) deleteModule(editingKey); });
+  moduleModal.addEventListener('click', (e) => { if (e.target === moduleModal) closeModuleModal(); });
+  moduleLabelInput.addEventListener('keydown', (e) => { if (e.key === 'Enter') submitModuleForm(); });
+  moduleUrlInput.addEventListener('keydown', (e) => { if (e.key === 'Enter') submitModuleForm(); });
+
+  /* Escape closes whichever modal is open */
+  document.addEventListener('keydown', (e) => {
+    if (e.key !== 'Escape') return;
+    if (signInModal.classList.contains('on')) closeSignInModal();
+    if (moduleModal.classList.contains('on')) closeModuleModal();
   });
 
   /* ─────────────────────────────────────────────────────────────────
-     Sidebar collapse behavior
-     ─────────────────────────────────────────────────────────────────
-     - Page open / refresh  → expanded
-     - Click inside iframe  → collapse (sets user intent to collapsed)
-     - Hover collapsed side → temporary visual expand (peek)
-     - Mouse leaves sidebar → re-collapse if intent is collapsed
-
-     `intentCollapsed` holds the user's logical state. `applyVisual` only
-     toggles the CSS class. Hover changes the visual without touching
-     intent, so leaving the sidebar restores whatever the intent was.
+     Sidebar collapse behavior (unchanged)
      ───────────────────────────────────────────────────────────────── */
   let intentCollapsed = false;
+  function applyVisual(collapsed) { app.classList.toggle('collapsed', collapsed); }
+  function setIntent(collapsed) { intentCollapsed = collapsed; applyVisual(collapsed); }
 
-  function applyVisual(collapsed) {
-    app.classList.toggle('collapsed', collapsed);
-  }
-  function setIntent(collapsed) {
-    intentCollapsed = collapsed;
-    applyVisual(collapsed);
-  }
+  sidebar.addEventListener('mouseenter', () => { if (intentCollapsed) applyVisual(false); });
+  sidebar.addEventListener('mouseleave', () => { if (intentCollapsed) applyVisual(true); });
 
-  /* Hover-to-peek */
-  sidebar.addEventListener('mouseenter', () => {
-    if (intentCollapsed) applyVisual(false);
-  });
-  sidebar.addEventListener('mouseleave', () => {
-    if (intentCollapsed) applyVisual(true);
-  });
-
-  /* Detect interaction with the iframe.
-
-     When a user clicks inside the iframe, the parent window loses focus
-     and the iframe element becomes document.activeElement. We use that
-     signal — guarded with setTimeout(0) so the activeElement has had a
-     chance to update — to collapse the sidebar. This is the standard
-     cross-browser technique for spotting iframe activation. */
   window.addEventListener('blur', () => {
     setTimeout(() => {
       if (document.activeElement && document.activeElement.tagName === 'IFRAME') {
@@ -517,30 +928,24 @@
     }, 0);
   });
 
-  /* Always boot expanded — explicit override of any prior session state. */
   applyVisual(false);
   try { localStorage.removeItem('projex.sidebarCollapsed'); } catch (_) {}
 
-  /* Boot a module. Prefer the last-opened one from a prior session; fall
-     back to whichever sidebar link starts with .active in markup (Calendar
-     by default). We always boot SOMETHING — the iframes are dynamic now,
-     so without this the content area would just show the loading spinner
-     forever. */
+  /* ---------- boot ---------- */
+  document.body.classList.toggle('admin', isAdmin());
+  updateSignBar();
+  renderNav();
+
   (function bootInitialModule() {
-    let key = null, el = null;
+    const modules = getModules();
+    if (!modules.length) return;
+    let key = null;
     try {
       const last = localStorage.getItem('projex.lastModule');
-      if (last && MODULES[last]) {
-        const node = document.querySelector(`[data-module="${last}"]`);
-        if (node) { key = last; el = node; }
-      }
+      if (last && modules.find(m => m.key === last)) key = last;
     } catch (_) {}
-    if (!key) {
-      el = document.querySelector('[data-module].active') ||
-           document.querySelector('[data-module]');
-      key = el && el.dataset.module;
-    }
-    if (key && el) loadModule(key, el);
+    if (!key) key = modules[0].key;
+    loadModule(key);
   })();
 </script>
 
