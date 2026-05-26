@@ -1,0 +1,1967 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Ideas · Collab Hub</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
+<style>
+  :root {
+    --navy:        #0D2440;
+    --navy-2:      #123257;
+    --navy-deep:   #07182C;
+    --ink:         #1B2440;
+    --ink-2:       #4B5571;
+    --muted:       #8990A8;
+    --line:        #E7E9F1;
+    --line-2:      #EFF1F7;
+    --page:        #F4F5F9;
+    --card:        #FFFFFF;
+
+    --coral:       #F26B5A;
+    --coral-soft:  #FFE6DE;
+    --coral-text:  #C84A36;
+    --mint:        #2DBA8B;
+    --mint-soft:   #DEF5EB;
+    --amber:       #E2A33C;
+    --amber-soft:  #FBEBC7;
+    --rose:        #F4B0C0;
+    --sky:         #BFD8F2;
+    --lemon:       #FFE6A8;
+
+    --shadow-sm:   0 1px 2px rgba(18,22,40,0.04), 0 0 0 1px var(--line-2);
+    --shadow-md:   0 6px 18px -8px rgba(18,22,40,0.18), 0 0 0 1px var(--line-2);
+  }
+
+  * { box-sizing: border-box; }
+  html, body { margin: 0; padding: 0; }
+  body {
+    font-family: 'Poppins', -apple-system, BlinkMacSystemFont, sans-serif;
+    background: var(--page);
+    color: var(--ink);
+    -webkit-font-smoothing: antialiased;
+    line-height: 1.45;
+  }
+  a { color: inherit; text-decoration: none; }
+  button { font: inherit; cursor: pointer; }
+
+  /* ============================================================
+     TOPBAR
+     ============================================================ */
+  .topbar {
+    position: sticky; top: 0; z-index: 50;
+    background: var(--page);
+    border-bottom: 1px solid var(--line-2);
+    display: flex;
+    align-items: center;
+    gap: 28px;
+    padding: 14px 36px;
+  }
+  .top-tabs {
+    display: flex; align-items: center; gap: 4px;
+  }
+  .top-tab {
+    display: inline-flex; align-items: center; gap: 8px;
+    padding: 8px 14px;
+    border-radius: 999px;
+    background: transparent;
+    border: 0;
+    color: var(--ink-2);
+    font-size: 14px;
+    font-weight: 500;
+    transition: background 0.15s, color 0.15s;
+  }
+  .top-tab:hover { background: rgba(13,36,64,0.05); color: var(--ink); }
+  .top-tab.active {
+    background: rgba(18,50,87,0.10);
+    color: var(--navy);
+  }
+  .top-tab .count {
+    display: inline-grid; place-items: center;
+    min-width: 22px; height: 20px;
+    padding: 0 7px;
+    border-radius: 999px;
+    background: var(--navy-2);
+    color: #fff;
+    font-size: 11px;
+    font-weight: 600;
+  }
+  .top-tab:not(.active) .count {
+    background: rgba(13,36,64,0.08);
+    color: var(--ink-2);
+  }
+  .top-tab svg {
+    width: 16px; height: 16px;
+    stroke: currentColor;
+    fill: none;
+    stroke-width: 1.8;
+  }
+
+  .top-spacer { flex: 1; }
+  .search {
+    position: relative;
+    width: 320px;
+    max-width: 30vw;
+  }
+  .search input {
+    width: 100%;
+    padding: 9px 56px 9px 36px;
+    border-radius: 10px;
+    border: 1px solid var(--line);
+    background: #fff;
+    font: inherit;
+    font-size: 13px;
+    color: var(--ink);
+    transition: border-color 0.15s, box-shadow 0.15s;
+  }
+  .search input:focus { outline: none; border-color: var(--navy-2); box-shadow: 0 0 0 3px rgba(18,50,87,0.10); }
+  .search svg { position: absolute; left: 12px; top: 50%; transform: translateY(-50%); width: 14px; height: 14px; stroke: var(--muted); fill: none; stroke-width: 2; }
+  .search .kbd {
+    position: absolute; right: 8px; top: 50%; transform: translateY(-50%);
+    font-size: 10px;
+    color: var(--muted);
+    padding: 3px 6px;
+    border: 1px solid var(--line);
+    border-radius: 4px;
+    background: var(--page);
+    letter-spacing: 0.5px;
+  }
+
+  .btn-coral {
+    display: inline-flex; align-items: center; gap: 8px;
+    padding: 9px 16px;
+    background: var(--navy-2);
+    color: #fff;
+    border: 0;
+    border-radius: 10px;
+    font-size: 13px;
+    font-weight: 600;
+    box-shadow: 0 6px 14px -6px rgba(18,50,87,0.55);
+    transition: background 0.15s, transform 0.1s;
+  }
+  .btn-coral:hover { background: var(--navy-deep); }
+  .btn-coral:active { transform: translateY(1px); }
+  .btn-coral svg { width: 14px; height: 14px; stroke: currentColor; fill: none; stroke-width: 2.2; }
+  .btn-coral .plus-circle {
+    display: grid; place-items: center;
+    width: 18px; height: 18px;
+    border-radius: 50%;
+    background: rgba(255,255,255,0.22);
+  }
+  .btn-coral .plus-circle svg { width: 10px; height: 10px; stroke-width: 3; }
+
+  /* ============================================================
+     MAIN LAYOUT
+     ============================================================ */
+  .main {
+    max-width: 1180px;
+    margin: 0 auto;
+    padding: 38px 36px 80px;
+  }
+  .view { display: none; }
+  .view.active { display: block; }
+
+  /* ---------- Hero ---------- */
+  .hero { display: flex; gap: 24px; align-items: flex-end; margin-bottom: 28px; }
+  .hero-left { flex: 1; min-width: 0; }
+  .eyebrow {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 11px;
+    letter-spacing: 1.6px;
+    font-weight: 600;
+    color: var(--navy-2);
+    text-transform: uppercase;
+    margin-bottom: 14px;
+  }
+  .eyebrow::before {
+    content: '';
+    width: 18px; height: 2px;
+    background: var(--navy-2);
+    border-radius: 2px;
+  }
+  .hero h1 {
+    margin: 0 0 10px;
+    font-family: 'Poppins', sans-serif;
+    font-size: 38px;
+    font-weight: 700;
+    letter-spacing: -0.02em;
+    color: var(--navy);
+    line-height: 1.1;
+  }
+  .hero h1 .ital {
+    font-style: italic;
+    font-weight: 500;
+    color: var(--navy-2);
+  }
+  .hero p {
+    margin: 0;
+    color: var(--ink-2);
+    font-size: 14px;
+    max-width: 480px;
+    line-height: 1.55;
+  }
+  .hero-right {
+    text-align: right;
+    flex-shrink: 0;
+    padding-bottom: 4px;
+  }
+  .hero-right .label {
+    font-size: 10px;
+    letter-spacing: 1.4px;
+    text-transform: uppercase;
+    color: var(--muted);
+    font-weight: 600;
+    margin-bottom: 6px;
+  }
+  .hero-right .stat {
+    font-size: 18px;
+    font-weight: 600;
+    color: var(--navy-2);
+  }
+  .hero-right .stat .sep { color: var(--ink-2); margin: 0 6px; }
+  .hero-right .stat .active { color: var(--navy); }
+
+  /* ---------- Filter row ---------- */
+  .filter-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin: 28px 0 22px;
+    flex-wrap: wrap;
+  }
+  .chip {
+    display: inline-flex; align-items: center; gap: 6px;
+    padding: 8px 14px;
+    background: #fff;
+    border: 1px solid var(--line);
+    border-radius: 999px;
+    color: var(--ink-2);
+    font-size: 13px;
+    font-weight: 500;
+    transition: border-color 0.15s, color 0.15s, background 0.15s;
+  }
+  .chip:hover:not(.active) { border-color: #D5D8E2; color: var(--ink); }
+  .chip.active {
+    background: var(--navy);
+    color: #fff;
+    border-color: var(--navy);
+  }
+  .sort-wrap { margin-left: auto; }
+  .sort-btn {
+    display: inline-flex; align-items: center; gap: 8px;
+    padding: 8px 14px;
+    background: #fff;
+    border: 1px solid var(--line);
+    border-radius: 10px;
+    color: var(--ink-2);
+    font-size: 13px;
+    font-weight: 500;
+    transition: border-color 0.15s;
+  }
+  .sort-btn:hover { border-color: #D5D8E2; color: var(--ink); }
+  .sort-btn svg { width: 12px; height: 12px; stroke: currentColor; fill: none; stroke-width: 2; }
+
+  /* ---------- Section header ---------- */
+  .section-head {
+    display: flex; align-items: center; gap: 8px;
+    margin: 30px 0 16px;
+    font-size: 11px;
+    letter-spacing: 1.6px;
+    text-transform: uppercase;
+    font-weight: 600;
+    color: var(--ink-2);
+  }
+  .section-head .icon {
+    display: inline-grid; place-items: center;
+    width: 18px; height: 18px;
+    color: var(--navy-2);
+  }
+  .section-head .icon svg { width: 14px; height: 14px; stroke: currentColor; fill: none; stroke-width: 2; }
+  .section-head .num { color: var(--muted); font-weight: 500; }
+
+  /* ---------- Spotlight grid ---------- */
+  .spotlight {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 18px;
+  }
+  @media (max-width: 980px) {
+    .spotlight { grid-template-columns: 1fr; }
+  }
+  .spot-card {
+    position: relative;
+    background: #fff;
+    border-radius: 18px;
+    padding: 22px 22px 18px;
+    box-shadow: var(--shadow-md);
+    overflow: hidden;
+    display: flex; flex-direction: column;
+    min-height: 280px;
+    cursor: pointer;
+    transition: transform 0.15s, box-shadow 0.2s;
+  }
+  .spot-card:hover { transform: translateY(-2px); box-shadow: 0 14px 26px -14px rgba(18,22,40,0.22), 0 0 0 1px var(--line-2); }
+
+  .pill-row { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; margin-bottom: 14px; }
+  .pill {
+    display: inline-flex; align-items: center; gap: 6px;
+    padding: 4px 10px;
+    border-radius: 999px;
+    font-size: 10px;
+    letter-spacing: 0.8px;
+    font-weight: 600;
+    text-transform: uppercase;
+    white-space: nowrap;
+  }
+  .pill .dot { width: 6px; height: 6px; border-radius: 50%; }
+  .pill.status-open      { background: var(--coral-soft); color: var(--coral-text); }
+  .pill.status-open .dot { background: var(--coral); }
+  .pill.status-coauth    { background: #FFF1D6; color: #B6791A; }
+  .pill.status-coauth .dot { background: #E2A33C; }
+  .pill.status-review    { background: var(--amber-soft); color: #936110; }
+  .pill.status-review .dot { background: var(--amber); }
+  .pill.status-adopted   { background: var(--mint-soft); color: #178155; }
+  .pill.status-adopted .dot { background: var(--mint); }
+  .pill.status-draft     { background: #E7E9F1; color: var(--ink-2); }
+  .pill.status-draft .dot{ background: var(--muted); }
+  .pill.space {
+    background: rgba(13,36,64,0.06);
+    color: var(--navy);
+    text-transform: none;
+    letter-spacing: 0.2px;
+    font-weight: 600;
+    font-size: 11px;
+    padding: 4px 10px;
+  }
+  .req-collab-btn {
+    display: inline-flex; align-items: center; gap: 5px;
+    padding: 5px 11px;
+    border: 1.5px solid var(--navy-2);
+    background: transparent;
+    color: var(--navy-2);
+    border-radius: 999px;
+    font-family: inherit;
+    font-size: 10px;
+    font-weight: 600;
+    letter-spacing: 0.6px;
+    text-transform: uppercase;
+    cursor: pointer;
+    transition: background 0.15s, color 0.15s;
+  }
+  .req-collab-btn:hover { background: var(--navy-2); color: #fff; }
+  .req-collab-btn svg { width: 11px; height: 11px; stroke: currentColor; fill: none; stroke-width: 2.4; }
+  .req-collab-btn.sent {
+    background: var(--mint-soft);
+    border-color: var(--mint);
+    color: #178155;
+    cursor: default;
+  }
+
+  .spot-card h3 {
+    margin: 0 0 10px;
+    font-size: 18px;
+    font-weight: 600;
+    color: var(--navy);
+    line-height: 1.25;
+    letter-spacing: -0.01em;
+  }
+  .spot-card .desc {
+    color: var(--ink-2);
+    font-size: 13px;
+    line-height: 1.55;
+    margin: 0 0 18px;
+    flex: 1;
+  }
+
+  .card-foot {
+    display: flex; align-items: center; gap: 12px;
+    margin-top: auto;
+  }
+  .author {
+    display: flex; align-items: center; gap: 9px;
+    min-width: 0;
+  }
+  .avatar {
+    width: 34px; height: 34px;
+    border-radius: 50%;
+    background: var(--coral);
+    color: #fff;
+    display: grid; place-items: center;
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.4px;
+    flex-shrink: 0;
+  }
+  .avatar.sm { width: 26px; height: 26px; font-size: 10px; }
+  .author .who { display: flex; flex-direction: column; min-width: 0; }
+  .author .name {
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--navy);
+    line-height: 1.2;
+  }
+  .author .sub {
+    font-size: 9.5px;
+    letter-spacing: 0.9px;
+    text-transform: uppercase;
+    color: var(--muted);
+    font-weight: 600;
+    margin-top: 2px;
+  }
+  .card-foot .spacer { flex: 1; }
+  .card-foot .upvote {
+    display: inline-flex; align-items: center; gap: 4px;
+    color: var(--ink-2); font-size: 13px; font-weight: 500;
+  }
+  .card-foot .upvote svg { width: 12px; height: 12px; stroke: currentColor; fill: none; stroke-width: 2; }
+
+  /* ---------- All ideas list ---------- */
+  .list { display: flex; flex-direction: column; gap: 14px; }
+  .idea-row {
+    background: #fff;
+    border-radius: 14px;
+    padding: 18px 22px;
+    box-shadow: var(--shadow-sm);
+    display: flex;
+    align-items: flex-start;
+    gap: 18px;
+    transition: transform 0.12s, box-shadow 0.18s;
+  }
+  .idea-row:hover { box-shadow: var(--shadow-md); }
+  .idea-body { flex: 1; min-width: 0; }
+  .idea-row h4 {
+    margin: 0 0 6px;
+    font-size: 15px;
+    font-weight: 600;
+    color: var(--navy);
+    letter-spacing: -0.01em;
+    line-height: 1.3;
+  }
+  .idea-row .desc {
+    margin: 0 0 12px;
+    font-size: 13px;
+    color: var(--ink-2);
+    line-height: 1.55;
+  }
+  .idea-row .row-foot {
+    display: flex; align-items: center; gap: 14px;
+    flex-wrap: wrap;
+  }
+  .idea-row .row-stats {
+    display: flex; align-items: center; gap: 14px;
+    margin-left: auto;
+    color: var(--ink-2);
+    font-size: 12px;
+    font-weight: 500;
+  }
+  .idea-row .row-stats .stat {
+    display: inline-flex; align-items: center; gap: 5px;
+    padding: 5px 9px;
+    border-radius: 8px;
+    background: var(--page);
+    transition: background 0.15s, color 0.15s;
+    border: 0;
+    color: inherit;
+    font: inherit;
+    font-weight: 500;
+  }
+  .idea-row .row-stats .stat:hover { background: #E7E9F1; color: var(--navy); }
+  .idea-row .row-stats .stat.upvoted { background: var(--coral-soft); color: var(--coral-text); }
+  .idea-row .row-stats svg { width: 12px; height: 12px; stroke: currentColor; fill: none; stroke-width: 2; }
+
+  .empty {
+    text-align: center;
+    padding: 60px 20px;
+    color: var(--ink-2);
+  }
+  .empty h3 { margin: 12px 0 6px; color: var(--navy); font-weight: 600; }
+  .empty p { margin: 0; font-size: 13px; }
+  .empty .emoji { font-size: 32px; }
+
+  /* ============================================================
+     POST IDEA FORM
+     ============================================================ */
+  .back-link {
+    display: inline-flex; align-items: center; gap: 6px;
+    color: var(--ink-2);
+    font-size: 13px;
+    font-weight: 500;
+    margin-bottom: 18px;
+    background: 0; border: 0;
+    padding: 0;
+  }
+  .back-link:hover { color: var(--navy); }
+  .back-link svg { width: 14px; height: 14px; stroke: currentColor; fill: none; stroke-width: 2; }
+
+  .form-layout {
+    display: grid;
+    grid-template-columns: 1fr 320px;
+    gap: 40px;
+    align-items: flex-start;
+  }
+  @media (max-width: 1000px) {
+    .form-layout { grid-template-columns: 1fr; }
+  }
+  .form-main h1 {
+    margin: 0 0 8px;
+    font-size: 32px;
+    font-weight: 700;
+    color: var(--navy);
+    letter-spacing: -0.02em;
+  }
+  .form-main > p {
+    color: var(--ink-2);
+    font-size: 14px;
+    margin: 0 0 28px;
+    max-width: 500px;
+  }
+  .form-main > p b { color: var(--navy); }
+
+  .author-card {
+    display: flex; align-items: center; gap: 16px;
+    background: linear-gradient(180deg, #E3ECF7 0%, #C8D7E9 100%);
+    border-radius: 14px;
+    padding: 16px 20px;
+    margin-bottom: 28px;
+  }
+  .author-card .avatar { background: var(--navy-2); }
+  .author-card .who { flex: 1; min-width: 0; }
+  .author-card .name { font-size: 15px; font-weight: 600; color: var(--navy); }
+  .author-card .sub  { font-size: 12px; color: var(--ink-2); font-weight: 500; text-transform: none; letter-spacing: 0; margin-top: 2px; }
+  .author-card .lock {
+    font-size: 11px;
+    color: var(--ink-2);
+    line-height: 1.45;
+    max-width: 200px;
+    text-align: right;
+  }
+
+  .field { margin-bottom: 22px; }
+  .field label {
+    display: flex; align-items: baseline; gap: 12px;
+    font-size: 10px;
+    letter-spacing: 1.4px;
+    text-transform: uppercase;
+    font-weight: 600;
+    color: var(--ink-2);
+    margin-bottom: 8px;
+  }
+  .field label .req { color: var(--navy-2); }
+  .field label .hint {
+    font-size: 11px; font-weight: 500;
+    letter-spacing: 0;
+    text-transform: none;
+    color: var(--muted);
+  }
+  .field input[type="text"],
+  .field textarea {
+    width: 100%;
+    padding: 12px 14px;
+    border: 1px solid var(--line);
+    border-radius: 10px;
+    background: #fff;
+    font: inherit;
+    font-size: 14px;
+    color: var(--navy);
+    transition: border-color 0.15s, box-shadow 0.15s;
+    resize: vertical;
+    font-family: inherit;
+  }
+  .field input:focus,
+  .field textarea:focus {
+    outline: none;
+    border-color: var(--navy-2);
+    box-shadow: 0 0 0 3px rgba(18,50,87,0.08);
+  }
+  .field textarea { min-height: 92px; line-height: 1.55; }
+
+  .two-col {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 24px;
+  }
+  @media (max-width: 700px) {
+    .two-col { grid-template-columns: 1fr; }
+  }
+
+  .chip-group { display: flex; flex-wrap: wrap; gap: 8px; }
+  .chip-group .chip { cursor: pointer; user-select: none; }
+  .chip-group .chip.selected {
+    background: var(--navy);
+    color: #fff;
+    border-color: var(--navy);
+  }
+
+  .form-foot {
+    display: flex; align-items: center; gap: 12px;
+    margin-top: 28px;
+    padding-top: 24px;
+    border-top: 1px solid var(--line-2);
+  }
+  .form-foot .left { flex: 1; display: flex; align-items: center; gap: 10px; font-size: 12px; color: var(--ink-2); }
+  .checkbox {
+    display: inline-flex; align-items: center; gap: 8px;
+    cursor: pointer;
+    user-select: none;
+    font-size: 13px;
+    color: var(--ink-2);
+  }
+  .checkbox input { display: none; }
+  .checkbox .box {
+    width: 18px; height: 18px;
+    border-radius: 5px;
+    border: 1.5px solid var(--line);
+    background: #fff;
+    display: grid; place-items: center;
+    transition: background 0.15s, border-color 0.15s;
+  }
+  .checkbox .box svg { width: 10px; height: 10px; stroke: #fff; fill: none; stroke-width: 3; opacity: 0; }
+  .checkbox input:checked + .box {
+    background: var(--navy-2);
+    border-color: var(--navy-2);
+  }
+  .checkbox input:checked + .box svg { opacity: 1; }
+
+  .btn-ghost {
+    display: inline-flex; align-items: center; gap: 6px;
+    padding: 10px 16px;
+    background: #fff;
+    border: 1px solid var(--line);
+    border-radius: 10px;
+    color: var(--ink-2);
+    font-size: 13px;
+    font-weight: 500;
+    transition: border-color 0.15s, color 0.15s;
+  }
+  .btn-ghost:hover { color: var(--navy); border-color: #D5D8E2; }
+  .btn-navy {
+    display: inline-flex; align-items: center; gap: 6px;
+    padding: 10px 18px;
+    background: var(--navy);
+    color: #fff;
+    border: 0;
+    border-radius: 10px;
+    font-size: 13px;
+    font-weight: 600;
+    transition: background 0.15s;
+  }
+  .btn-navy:hover { background: var(--navy-deep); }
+
+  /* ---------- Right side panel (post form) ---------- */
+  .side {
+    display: flex; flex-direction: column; gap: 20px;
+    position: sticky; top: 88px;
+  }
+  .side .eyebrow-sm {
+    font-size: 10px;
+    letter-spacing: 1.4px;
+    text-transform: uppercase;
+    color: var(--muted);
+    font-weight: 600;
+    margin-bottom: 6px;
+    display: flex; align-items: center; gap: 6px;
+  }
+  .side .eyebrow-sm::before {
+    content: '✶';
+    color: var(--navy-2);
+  }
+  .preview-card {
+    background: #fff;
+    border-radius: 14px;
+    padding: 20px;
+    box-shadow: var(--shadow-md);
+  }
+  .preview-card h4 {
+    margin: 0 0 8px;
+    font-size: 16px;
+    font-weight: 600;
+    color: var(--navy);
+    letter-spacing: -0.01em;
+  }
+  .preview-card .desc {
+    font-size: 12.5px;
+    color: var(--ink-2);
+    line-height: 1.5;
+    margin: 0 0 14px;
+  }
+  .preview-card .pf {
+    display: flex; align-items: center; gap: 10px;
+    border-top: 1px solid var(--line-2);
+    padding-top: 12px;
+    font-size: 12px;
+  }
+  .preview-card .pf .upvote {
+    margin-left: auto;
+    color: var(--ink-2);
+    font-size: 12px;
+    font-weight: 500;
+  }
+
+  .info-card {
+    background: #fff;
+    border-radius: 14px;
+    padding: 20px;
+    box-shadow: var(--shadow-sm);
+  }
+  .info-card h5 {
+    margin: 0 0 14px;
+    font-size: 10px;
+    letter-spacing: 1.4px;
+    text-transform: uppercase;
+    color: var(--ink-2);
+    font-weight: 600;
+  }
+  .info-card ol { margin: 0; padding: 0; list-style: none; counter-reset: step; }
+  .info-card li {
+    counter-increment: step;
+    padding: 10px 0 12px 36px;
+    position: relative;
+    font-size: 12.5px;
+    line-height: 1.5;
+    color: var(--ink-2);
+    border-top: 1px solid var(--line-2);
+  }
+  .info-card li:first-child { border-top: 0; padding-top: 4px; }
+  .info-card li b { color: var(--navy); font-weight: 600; }
+  .info-card li::before {
+    content: counter(step);
+    position: absolute;
+    left: 0; top: 9px;
+    width: 24px; height: 24px;
+    border-radius: 50%;
+    background: rgba(18,50,87,0.10);
+    color: var(--navy-2);
+    font-size: 11px;
+    font-weight: 600;
+    display: grid; place-items: center;
+  }
+  .info-card li:first-child::before { top: 3px; }
+
+  /* ============================================================
+     IDEA DETAIL MODAL
+     ============================================================ */
+  .modal-backdrop {
+    position: fixed; inset: 0;
+    background: rgba(13,24,45,0.55);
+    backdrop-filter: blur(4px);
+    display: none;
+    align-items: center; justify-content: center;
+    padding: 28px;
+    z-index: 200;
+  }
+  .modal-backdrop.on { display: flex; }
+  .modal {
+    background: #fff;
+    border-radius: 18px;
+    width: 100%;
+    max-width: 640px;
+    max-height: calc(100vh - 56px);
+    overflow: auto;
+    box-shadow: 0 30px 60px -20px rgba(13,24,45,0.4);
+    padding: 28px 32px 24px;
+  }
+  .modal-close {
+    background: transparent; border: 0;
+    color: var(--muted);
+    padding: 4px;
+    border-radius: 6px;
+    display: grid; place-items: center;
+    float: right;
+  }
+  .modal-close:hover { background: var(--page); color: var(--navy); }
+  .modal-close svg { width: 16px; height: 16px; stroke: currentColor; fill: none; stroke-width: 2; }
+  .modal h2 {
+    margin: 4px 0 6px;
+    font-size: 22px;
+    font-weight: 700;
+    color: var(--navy);
+    letter-spacing: -0.02em;
+  }
+  .modal .meta {
+    display: flex; gap: 10px; flex-wrap: wrap;
+    margin-bottom: 18px;
+  }
+  .modal section {
+    margin: 18px 0;
+    padding-top: 16px;
+    border-top: 1px solid var(--line-2);
+  }
+  .modal section:first-of-type { border-top: 0; padding-top: 0; margin-top: 14px; }
+  .modal section h6 {
+    margin: 0 0 6px;
+    font-size: 10px;
+    letter-spacing: 1.4px;
+    text-transform: uppercase;
+    color: var(--ink-2);
+    font-weight: 600;
+  }
+  .modal section .body {
+    font-size: 13.5px;
+    color: var(--ink);
+    line-height: 1.6;
+    white-space: pre-wrap;
+  }
+  .modal-foot {
+    display: flex; align-items: center; gap: 10px;
+    margin-top: 24px;
+    padding-top: 18px;
+    border-top: 1px solid var(--line-2);
+  }
+  .modal-foot .left { flex: 1; }
+  .status-select {
+    padding: 8px 12px;
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    background: #fff;
+    font: inherit;
+    font-size: 13px;
+    color: var(--ink);
+  }
+  .admin-hint {
+    font-size: 11px;
+    color: var(--muted);
+    margin-right: 8px;
+  }
+
+  /* tiny toast */
+  .toast {
+    position: fixed;
+    bottom: 24px; left: 50%;
+    transform: translateX(-50%) translateY(20px);
+    background: var(--navy);
+    color: #fff;
+    padding: 10px 18px;
+    border-radius: 10px;
+    font-size: 13px;
+    font-weight: 500;
+    box-shadow: 0 10px 24px -8px rgba(13,24,45,0.5);
+    opacity: 0;
+    pointer-events: none;
+    z-index: 500;
+    transition: opacity 0.2s, transform 0.2s;
+  }
+  .toast.on { opacity: 1; transform: translateX(-50%) translateY(0); }
+
+  /* responsive trims */
+  @media (max-width: 760px) {
+    .topbar { padding: 12px 18px; gap: 12px; flex-wrap: wrap; }
+    .top-tabs { order: 4; width: 100%; overflow-x: auto; }
+    .search { width: 100%; order: 5; }
+    .main { padding: 24px 18px 60px; }
+    .hero { flex-direction: column; align-items: flex-start; gap: 12px; }
+    .hero h1 { font-size: 28px; }
+    .hero-right { text-align: left; }
+  }
+</style>
+</head>
+<body>
+
+<!-- ============================================================
+     TOPBAR
+     ============================================================ -->
+<header class="topbar">
+  <nav class="top-tabs">
+    <button class="top-tab active" data-tab="all">
+      <svg viewBox="0 0 24 24"><path d="M21 12a9 9 0 1 1-3.7-7.3L21 5l-1.8 4.3"/></svg>
+      Ideas <span class="count" id="countAll">0</span>
+    </button>
+    <button class="top-tab" data-tab="mine">
+      <svg viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="3"/><path d="M8 8h8M8 12h8M8 16h5"/></svg>
+      My Ideas <span class="count" id="countMine">0</span>
+    </button>
+    <button class="top-tab" data-tab="wins">
+      <svg viewBox="0 0 24 24"><path d="M8 21h8M12 17v4M7 4h10v5a5 5 0 0 1-10 0V4z"/><path d="M17 5h2a2 2 0 0 1 0 4h-2M7 5H5a2 2 0 0 0 0 4h2"/></svg>
+      Wins
+    </button>
+  </nav>
+
+  <div class="top-spacer"></div>
+
+  <div class="search">
+    <svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3"/></svg>
+    <input id="searchInput" type="text" placeholder="Search an idea..." spellcheck="false" />
+    <span class="kbd">⌘K</span>
+  </div>
+
+  <button class="btn-coral" id="postBtn" onclick="openPostForm()">
+    <span class="plus-circle"><svg viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg></span>
+    Post an idea
+  </button>
+</header>
+
+<main class="main">
+
+  <!-- =========================================================
+       FEED VIEW
+       ========================================================= -->
+  <section class="view active" id="feedView">
+    <div class="hero">
+      <div class="hero-left">
+        <div class="eyebrow" id="heroEyebrow">Collab Hub · Ideas</div>
+        <h1 id="heroTitle">Ideas, <span class="ital">in flight</span></h1>
+        <p id="heroSub">What the team is proposing, building on, and quietly arguing about. Drop an idea, upvote what resonates, and request to collab when you want in.</p>
+      </div>
+      <div class="hero-right">
+        <div class="label">This week</div>
+        <div class="stat">
+          <span id="statNew">+0 new</span>
+          <span class="sep">·</span>
+          <span class="active" id="statActive">0 active</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="filter-row" id="filterRow">
+      <button class="chip active" data-filter="all">All</button>
+      <button class="chip" data-filter="open">Open for collab</button>
+      <button class="chip" data-filter="coauth">Needs co-authors</button>
+      <button class="chip" data-filter="review">In review</button>
+      <button class="chip" data-filter="adopted">Adopted</button>
+      <div class="sort-wrap">
+        <button class="sort-btn" id="sortBtn">
+          <svg viewBox="0 0 24 24"><path d="M3 6h18M6 12h12M10 18h4"/></svg>
+          <span id="sortLabel">Sort: Most recent</span>
+        </button>
+      </div>
+    </div>
+
+    <!-- spotlight -->
+    <div id="spotlightWrap">
+      <div class="section-head">
+        <span class="icon">
+          <svg viewBox="0 0 24 24"><path d="M9 18l-1 4 4-2 4 2-1-4"/><circle cx="12" cy="9" r="7"/></svg>
+        </span>
+        Spotlight · Looking for collaborators
+      </div>
+      <div class="spotlight" id="spotlight"></div>
+    </div>
+
+    <!-- all ideas -->
+    <div class="section-head" id="listHead">
+      <span class="icon">
+        <svg viewBox="0 0 24 24"><path d="M21 11.5a8.4 8.4 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.4 8.4 0 0 1-3.8-.9L3 21l1.9-5.7a8.4 8.4 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.4 8.4 0 0 1 3.8-.9h.5a8.5 8.5 0 0 1 8 8v.5z"/></svg>
+      </span>
+      <span id="listTitle">All ideas</span>
+      <span class="num">( <span id="listCount">0</span> )</span>
+    </div>
+    <div class="list" id="ideaList"></div>
+  </section>
+
+  <!-- =========================================================
+       POST IDEA VIEW
+       ========================================================= -->
+  <section class="view" id="postView">
+    <button class="back-link" onclick="showView('feed')">
+      <svg viewBox="0 0 24 24"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>
+      Back to Ideas
+    </button>
+
+    <div class="form-layout">
+      <div class="form-main">
+        <div class="eyebrow"><span id="formEyebrow">New idea · Draft</span></div>
+        <h1 id="formTitle">Post an idea</h1>
+        <p>Drop the idea on the feed. The team can read it, build on it, or ask to collaborate.</p>
+
+        <div class="author-card">
+          <div class="avatar" id="formAuthorAvatar">YO</div>
+          <div class="who">
+            <div class="name" id="formAuthorName">You</div>
+            <div class="sub" id="formAuthorRole">Set your name below ↓</div>
+          </div>
+          <div class="lock">Only you can edit the title later. Anyone who joins as a collaborator can edit everything else.</div>
+        </div>
+
+        <div class="two-col">
+          <div class="field">
+            <label>Your name <span class="req">*</span> <span class="hint">Shown on the idea card.</span></label>
+            <input type="text" id="fName" placeholder="e.g. Mara Linao" />
+          </div>
+          <div class="field">
+            <label>Your title <span class="hint">e.g. Engineering Lead, Product Designer.</span></label>
+            <input type="text" id="fRole" placeholder="e.g. Engineering Lead" />
+          </div>
+        </div>
+
+        <div class="field">
+          <label>Title <span class="req">*</span> <span class="hint">Plain language. No jargon. Imagine a hallway pitch.</span></label>
+          <input type="text" id="fTitle" placeholder="e.g. Auto-flag duplicate patient records on intake" />
+        </div>
+
+        <div class="two-col">
+          <div class="field">
+            <label>Space <span class="hint">Which solution does this idea belong to?</span></label>
+            <div class="chip-group" id="spaceGroup">
+              <button class="chip selected" data-space="Internal">Internal</button>
+              <button class="chip" data-space="HIS">HIS</button>
+              <button class="chip" data-space="BMD">BMD</button>
+              <button class="chip" data-space="Workflow">Workflow</button>
+              <button class="chip" data-space="New project">New project</button>
+              <button class="chip" data-space="Design">Design</button>
+            </div>
+          </div>
+          <div class="field">
+            <label>Status when posted</label>
+            <div class="chip-group" id="statusGroup">
+              <button class="chip" data-status="Draft">Keep as draft</button>
+              <button class="chip selected" data-status="Open for collab">Open for collab</button>
+              <button class="chip" data-status="In review">Send to review</button>
+            </div>
+          </div>
+        </div>
+
+        <div class="field">
+          <label>The problem <span class="hint">What's broken, who feels it, and how you know.</span></label>
+          <textarea id="fProblem" placeholder="The current rotation hits the same five residents three times a month..."></textarea>
+        </div>
+
+        <div class="field">
+          <label>The proposal <span class="hint">A short, scannable list works best. Numbered steps even better.</span></label>
+          <textarea id="fProposal" placeholder="1. Pool on-call across sites...&#10;2. Cap to two on-call shifts per month...&#10;3. ..."></textarea>
+        </div>
+
+        <div class="field">
+          <label>How we'll know it worked <span class="hint">One or two measurable signals.</span></label>
+          <textarea id="fMeasure" placeholder="Resident attrition rate, average on-call shifts per resident per month..."></textarea>
+        </div>
+
+        <div class="form-foot">
+          <div class="left">
+            <label class="checkbox">
+              <input type="checkbox" id="fOpenCollab" checked />
+              <span class="box"><svg viewBox="0 0 24 24"><path d="M5 12l4 4L19 6"/></svg></span>
+              Open for collaboration immediately
+            </label>
+          </div>
+          <button class="btn-ghost" onclick="saveDraft()">Save draft</button>
+          <button class="btn-navy" onclick="postIdea(true)">Preview</button>
+          <button class="btn-coral" onclick="postIdea(false)">
+            <svg viewBox="0 0 24 24"><path d="M22 2L11 13M22 2l-7 20-4-9-9-4 20-7z"/></svg>
+            Post idea
+          </button>
+        </div>
+      </div>
+
+      <aside class="side">
+        <div>
+          <div class="eyebrow-sm">Live preview</div>
+          <div class="preview-card" id="previewCard">
+            <div class="pill-row">
+              <span class="pill status-open" id="prevStatus"><span class="dot"></span>Open for collab</span>
+              <span class="pill space" id="prevSpace">Operations</span>
+            </div>
+            <h4 id="prevTitle">Your idea title</h4>
+            <div class="desc" id="prevDesc">A short summary of what this is about.</div>
+            <div class="pf">
+              <div class="avatar sm" id="prevAvatar">YO</div>
+              <div>
+                <div style="font-size: 12px; font-weight: 600; color: var(--navy);" id="prevName">You</div>
+                <div style="font-size: 9px; letter-spacing: 0.8px; text-transform: uppercase; color: var(--muted); font-weight: 600; margin-top: 1px;">Just now</div>
+              </div>
+              <div class="upvote" style="margin-left:auto;">↑ 1</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="info-card">
+          <h5>What happens when you post</h5>
+          <ol>
+            <li><b>Your idea lands on the feed.</b> Anyone in the workspace can read it, upvote, or request to collaborate.</li>
+            <li><b>The team gets a nudge.</b> People active in the same space see it on their next visit.</li>
+            <li><b>You decide who joins.</b> Collab requests come to you. Accept, decline, or counter with a chat.</li>
+            <li><b>Status moves through review.</b> Admins can move an idea from Open for collab to In review to Adopted as the work matures.</li>
+          </ol>
+        </div>
+      </aside>
+    </div>
+  </section>
+
+</main>
+
+<!-- ============================================================
+     IDEA DETAIL MODAL
+     ============================================================ -->
+<div class="modal-backdrop" id="detailModal">
+  <div class="modal" id="detailModalInner">
+    <button class="modal-close" onclick="closeDetail()"><svg viewBox="0 0 24 24"><path d="M18 6L6 18M6 6l12 12"/></svg></button>
+    <div class="meta" id="detailMeta"></div>
+    <h2 id="detailTitle">—</h2>
+
+    <section>
+      <h6>The problem</h6>
+      <div class="body" id="detailProblem">—</div>
+    </section>
+    <section>
+      <h6>The proposal</h6>
+      <div class="body" id="detailProposal">—</div>
+    </section>
+    <section>
+      <h6>How we'll know it worked</h6>
+      <div class="body" id="detailMeasure">—</div>
+    </section>
+
+    <div class="modal-foot">
+      <div class="left">
+        <div class="author">
+          <div class="avatar sm" id="detailAvatar">—</div>
+          <div class="who">
+            <div class="name" id="detailAuthor">—</div>
+            <div class="sub" id="detailWhen">—</div>
+          </div>
+        </div>
+      </div>
+      <button class="btn-ghost" id="detailUpvote">
+        <svg viewBox="0 0 24 24" style="width:14px;height:14px;stroke:currentColor;fill:none;stroke-width:2;"><path d="M12 19V5M5 12l7-7 7 7"/></svg>
+        <span id="detailUpvoteCount">0</span>
+      </button>
+      <span id="detailAdminControls" style="display:none">
+        <span class="admin-hint">Admin:</span>
+        <select class="status-select" id="detailStatus">
+          <option>Draft</option>
+          <option>Open for collab</option>
+          <option>Needs co-authors</option>
+          <option>In review</option>
+          <option>Adopted</option>
+        </select>
+      </span>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast">Saved</div>
+
+<script>
+/* ============================================================
+   Ideas Module — Collab Hub
+   Frontend with localStorage cache + Apps Script backend stub.
+
+   Backend wiring (when ready):
+     1. Deploy the ideas-apps-script.gs file as a Google Apps Script
+        Web App (Execute as: me, Access: Anyone). Copy the /exec URL.
+     2. Paste that URL into APPS_SCRIPT_URL below.
+     3. Until then, ideas live in localStorage only (single user).
+   ============================================================ */
+
+const APPS_SCRIPT_URL = '';   // <-- paste your Apps Script /exec URL here
+const ADMIN_KEY       = 'projex.admin';
+const CACHE_KEY       = 'ideas.cache.v1';
+const NAME_KEY        = 'ideas.userName';
+const DRAFT_KEY       = 'ideas.draft.v1';
+const UPVOTE_KEY      = 'ideas.upvotedBy.v1';   // local upvote dedupe
+
+const SPACES = ['Internal','HIS','BMD','Workflow','New project','Design'];
+const STATUS_CLASS = {
+  'Draft':            'status-draft',
+  'Open for collab':  'status-open',
+  'Needs co-authors': 'status-coauth',
+  'In review':        'status-review',
+  'Adopted':          'status-adopted',
+};
+const AVATAR_PALETTE = ['#F26B5A','#FFC4B0','#2DBA8B','#5C7CFA','#E2A33C','#A78BFA','#F4B0C0','#3BA1B5'];
+
+/* ============================================================
+   Sample seed data — replaces empty state on first load.
+   ============================================================ */
+const SEED = [
+  {
+    id: 'seed-1',
+    title: 'Unified release notes hub for all Bizbox products',
+    problem: 'We ship updates to HIS, BMD, and the Payment Portal on different cadences. Clients hear about a change two weeks late on the wrong channel — or not at all.',
+    proposal: '1. Central /whats-new page that aggregates from each product feed.\n2. Per-product subscription so clinics see only what they use.\n3. Email digest on the first of the month.',
+    measure: 'Open rate of the digest email, ticket volume on "I didn\'t know about X" questions.',
+    space: 'Internal',
+    status: 'Open for collab',
+    author: { name: 'Anna Cordero', role: 'Product Manager', initials: 'AC', avatarColor: '#5C7CFA' },
+    upvotes: 12,
+    comments: 3,
+    createdAt: '2026-05-18T10:00:00Z',
+  },
+  {
+    id: 'seed-2',
+    title: 'Auto-flag duplicate patient records on intake',
+    problem: 'The same patient walks in to two sites in the network. We end up with two charts, two billings, and a manual merge weeks later — sometimes never.',
+    proposal: '1. On new-patient save, run a soft match on name + DOB + phone.\n2. Show reception a "Possible match found" card linking to the existing chart.\n3. One-click merge if it\'s confirmed.',
+    measure: 'Duplicate merge requests per month, % of new patients who hit the match prompt.',
+    space: 'HIS',
+    status: 'In review',
+    author: { name: 'Phia Salazar', role: 'Solutions Engineer', initials: 'PS', avatarColor: '#E2A33C' },
+    upvotes: 27,
+    comments: 8,
+    createdAt: '2026-05-21T09:00:00Z',
+  },
+  {
+    id: 'seed-3',
+    title: 'Keyboard shortcuts for the BMD appointment view',
+    problem: 'Power users (doctors with full clinics) spend most of their day on the appointment grid. Every click is a fraction of a second they don\'t have.',
+    proposal: 'Add J/K to move between appointments, N to create a new one, V to open vitals, R to mark completed. Show a cheat sheet on "?".',
+    measure: 'Daily active power users, average time-to-next-action on appointment view.',
+    space: 'BMD',
+    status: 'Open for collab',
+    author: { name: 'Joel Bautista', role: 'Engineering Lead', initials: 'JB', avatarColor: '#3BA1B5' },
+    upvotes: 18,
+    comments: 4,
+    createdAt: '2026-05-19T14:00:00Z',
+  },
+  {
+    id: 'seed-4',
+    title: 'Single sign-on across HIS, BMD, and Payment Portal',
+    problem: 'Staff keep three sets of credentials and password reset is the #1 support ticket category.',
+    proposal: 'Move all three products behind a single Bizbox Identity provider. Existing accounts get linked on next login.',
+    measure: 'Password-reset tickets per month, time-to-login from cold open, % of users on linked accounts.',
+    space: 'Workflow',
+    status: 'Adopted',
+    author: { name: 'Mira Ocampo', role: 'Platform Architect', initials: 'MO', avatarColor: '#A78BFA' },
+    upvotes: 89,
+    comments: 34,
+    createdAt: '2026-05-10T10:00:00Z',
+  },
+  {
+    id: 'seed-5',
+    title: 'Patient mobile app for prescription refills',
+    problem: 'Refill requests come in by phone, by walk-in, sometimes by FB Messenger. The pharmacy team chases approvals from the prescribing doctor manually.',
+    proposal: 'A small patient app: tap a past prescription, request refill. Doctor approves with one tap from BMD. Pharmacy gets a queued task.',
+    measure: 'Refill turnaround time, % of refills initiated digitally.',
+    space: 'New project',
+    status: 'Open for collab',
+    author: { name: 'Lyka Domingo', role: 'Product Designer', initials: 'LD', avatarColor: '#F4B0C0' },
+    upvotes: 22,
+    comments: 7,
+    createdAt: '2026-05-15T11:00:00Z',
+  },
+  {
+    id: 'seed-6',
+    title: 'Unified empty-state illustrations across the design system',
+    problem: 'Every product has its own empty state — some have nothing at all. New users land on a blank screen and bounce.',
+    proposal: 'A shared set of 12 friendly empty-state illustrations + standard copy patterns. Published as part of Beacon.',
+    measure: 'Adoption rate across products, qualitative feedback on first-run experience.',
+    space: 'Design',
+    status: 'Open for collab',
+    author: { name: 'Tomas Reyes', role: 'Design Lead', initials: 'TR', avatarColor: '#2DBA8B' },
+    upvotes: 18,
+    comments: 5,
+    createdAt: '2026-05-14T09:00:00Z',
+  },
+  {
+    id: 'seed-7',
+    title: 'Async daily standup tool inside Slack',
+    problem: 'Standups eat 20 minutes per team per day. Half the team is in another timezone or on call.',
+    proposal: 'A Slack-native bot. Asks 3 questions at 9am local time. Posts the team digest at 10am. No video calls required.',
+    measure: 'Meeting hours per week, team participation rate.',
+    space: 'Internal',
+    status: 'In review',
+    author: { name: 'Bea Esquivel', role: 'Engineering Manager', initials: 'BE', avatarColor: '#F26B5A' },
+    upvotes: 14,
+    comments: 2,
+    createdAt: '2026-05-17T11:00:00Z',
+  },
+];
+
+/* ============================================================
+   State
+   ============================================================ */
+let ideas = [];
+let currentTab    = 'all';     // 'all' | 'mine' | 'wins'
+let currentFilter = 'all';     // 'all' | 'open' | 'coauth' | 'review' | 'adopted'
+let currentSort   = 'recent';  // 'recent' | 'upvotes'
+let currentSearch = '';
+let openIdeaId    = null;
+
+function isAdmin() {
+  try { return localStorage.getItem(ADMIN_KEY) === '1'; } catch (_) { return false; }
+}
+function getUserName() {
+  try { return localStorage.getItem(NAME_KEY) || ''; } catch (_) { return ''; }
+}
+function setUserName(n) {
+  try { localStorage.setItem(NAME_KEY, n); } catch (_) {}
+}
+function getUpvoted() {
+  try {
+    const raw = localStorage.getItem(UPVOTE_KEY);
+    return raw ? JSON.parse(raw) : [];
+  } catch (_) { return []; }
+}
+function setUpvoted(arr) {
+  try { localStorage.setItem(UPVOTE_KEY, JSON.stringify(arr)); } catch (_) {}
+}
+
+const COLLAB_KEY = 'ideas.collabRequested.v1';
+function getCollabRequested() {
+  try {
+    const raw = localStorage.getItem(COLLAB_KEY);
+    return raw ? JSON.parse(raw) : [];
+  } catch (_) { return []; }
+}
+function setCollabRequested(arr) {
+  try { localStorage.setItem(COLLAB_KEY, JSON.stringify(arr)); } catch (_) {}
+}
+function requestCollab(id) {
+  const list = getCollabRequested();
+  if (list.includes(id)) {
+    toast('You\'ve already requested to collab on this');
+    return;
+  }
+  list.push(id);
+  setCollabRequested(list);
+  postRemote('collabRequest', { id, by: getUserName() || 'Anonymous' });
+  toast('Collab request sent — the author will see it');
+  render();
+}
+
+function initialsOf(name) {
+  if (!name) return '??';
+  const parts = name.trim().split(/\s+/).slice(0, 2);
+  return parts.map(p => p[0]).join('').toUpperCase() || '??';
+}
+function colorFor(seed) {
+  let h = 0;
+  for (let i = 0; i < seed.length; i++) h = (h * 31 + seed.charCodeAt(i)) >>> 0;
+  return AVATAR_PALETTE[h % AVATAR_PALETTE.length];
+}
+function timeAgo(iso) {
+  if (!iso) return '';
+  const t = new Date(iso).getTime();
+  const diff = Date.now() - t;
+  const m = Math.floor(diff / 60000);
+  if (m < 1) return 'Just now';
+  if (m < 60) return m + ' min ago';
+  const h = Math.floor(m / 60);
+  if (h < 24) return h + 'h ago';
+  const d = Math.floor(h / 24);
+  if (d < 7) return d + 'd ago';
+  return Math.floor(d / 7) + 'w ago';
+}
+function escapeHtml(s) {
+  return String(s == null ? '' : s)
+    .replace(/&/g, '&amp;').replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+}
+function statusToPillClass(status) {
+  return STATUS_CLASS[status] || 'status-draft';
+}
+
+/* ============================================================
+   Data loading — localStorage cache + Apps Script (optional)
+   ============================================================ */
+function loadFromCache() {
+  try {
+    const raw = localStorage.getItem(CACHE_KEY);
+    if (raw) {
+      const parsed = JSON.parse(raw);
+      if (Array.isArray(parsed) && parsed.length) return parsed;
+    }
+  } catch (_) {}
+  return null;
+}
+function saveToCache(arr) {
+  try { localStorage.setItem(CACHE_KEY, JSON.stringify(arr)); } catch (_) {}
+}
+
+async function fetchRemote() {
+  if (!APPS_SCRIPT_URL) return null;
+  try {
+    const r = await fetch(APPS_SCRIPT_URL + '?action=list', { method: 'GET' });
+    if (!r.ok) return null;
+    const data = await r.json();
+    if (data && Array.isArray(data.ideas)) return data.ideas;
+  } catch (e) {
+    console.warn('Ideas fetch failed:', e);
+  }
+  return null;
+}
+
+async function postRemote(action, payload) {
+  if (!APPS_SCRIPT_URL) return null;
+  try {
+    const r = await fetch(APPS_SCRIPT_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+      body: JSON.stringify({ action, ...payload }),
+    });
+    if (!r.ok) return null;
+    return await r.json();
+  } catch (e) {
+    console.warn('Ideas write failed:', e);
+    return null;
+  }
+}
+
+async function loadIdeas() {
+  // 1) hydrate from cache (fast)
+  const cached = loadFromCache();
+  if (cached) {
+    ideas = cached;
+    render();
+  } else {
+    ideas = SEED.slice();
+    saveToCache(ideas);
+    render();
+  }
+  // 2) try remote refresh (slow)
+  const remote = await fetchRemote();
+  if (remote) {
+    ideas = remote;
+    saveToCache(ideas);
+    render();
+  }
+}
+
+/* ============================================================
+   Filtering / sorting / search
+   ============================================================ */
+function getVisibleIdeas() {
+  const me = getUserName().toLowerCase();
+  let arr = ideas.slice();
+
+  // tab
+  if (currentTab === 'mine') {
+    arr = arr.filter(i => (i.author?.name || '').toLowerCase() === me && me);
+  } else if (currentTab === 'wins') {
+    arr = arr.filter(i => i.status === 'Adopted');
+  }
+
+  // filter chip
+  if (currentFilter !== 'all' && currentTab === 'all') {
+    const map = {
+      open:    'Open for collab',
+      coauth:  'Needs co-authors',
+      review:  'In review',
+      adopted: 'Adopted',
+    };
+    const s = map[currentFilter];
+    if (s) arr = arr.filter(i => i.status === s);
+  }
+
+  // search
+  if (currentSearch) {
+    const q = currentSearch.toLowerCase();
+    arr = arr.filter(i =>
+      (i.title    || '').toLowerCase().includes(q) ||
+      (i.problem  || '').toLowerCase().includes(q) ||
+      (i.proposal || '').toLowerCase().includes(q) ||
+      (i.measure  || '').toLowerCase().includes(q) ||
+      (i.space    || '').toLowerCase().includes(q) ||
+      (i.author?.name || '').toLowerCase().includes(q) ||
+      (i.author?.role || '').toLowerCase().includes(q)
+    );
+  }
+
+  // sort
+  if (currentSort === 'upvotes') {
+    arr.sort((a, b) => (b.upvotes || 0) - (a.upvotes || 0));
+  } else {
+    arr.sort((a, b) => (new Date(b.createdAt || 0)) - (new Date(a.createdAt || 0)));
+  }
+  return arr;
+}
+
+/* ============================================================
+   Render
+   ============================================================ */
+function render() {
+  // tab counts
+  const me = getUserName().toLowerCase();
+  document.getElementById('countAll').textContent  = ideas.length;
+  document.getElementById('countMine').textContent = ideas.filter(i => (i.author?.name || '').toLowerCase() === me && me).length;
+
+  // hero stats
+  const oneWeekAgo = Date.now() - 7 * 24 * 60 * 60 * 1000;
+  const newThisWeek = ideas.filter(i => new Date(i.createdAt || 0).getTime() > oneWeekAgo).length;
+  const active = ideas.filter(i => i.status !== 'Adopted' && i.status !== 'Draft').length;
+  document.getElementById('statNew').textContent    = '+' + newThisWeek + ' new';
+  document.getElementById('statActive').textContent = active + ' active';
+
+  // tab-specific hero copy
+  if (currentTab === 'mine') {
+    document.getElementById('heroEyebrow').textContent = 'Your contributions';
+    document.getElementById('heroTitle').innerHTML = 'My <span class="ital">ideas</span>';
+    document.getElementById('heroSub').textContent = 'Everything you\'ve posted, in flight or already adopted.';
+  } else if (currentTab === 'wins') {
+    document.getElementById('heroEyebrow').textContent = 'What the team shipped';
+    document.getElementById('heroTitle').innerHTML = '<span class="ital">Wins</span>';
+    document.getElementById('heroSub').textContent = 'Ideas the team agreed to adopt. The compounding interest of the work.';
+  } else {
+    document.getElementById('heroEyebrow').textContent = 'Collab Hub · Ideas';
+    document.getElementById('heroTitle').innerHTML = 'Ideas, <span class="ital">in flight</span>';
+    document.getElementById('heroSub').innerHTML = 'What the team is proposing, building on, and quietly arguing about. Drop an idea, upvote what resonates, and request to collab when you want in.';
+  }
+
+  // hide filter row + spotlight on non-feed tabs
+  document.getElementById('filterRow').style.display      = currentTab === 'all' ? '' : 'none';
+  document.getElementById('spotlightWrap').style.display  = currentTab === 'all' && currentFilter === 'all' && !currentSearch ? '' : 'none';
+
+  // list title
+  if (currentTab === 'wins')      document.getElementById('listTitle').textContent = 'Adopted ideas';
+  else if (currentTab === 'mine') document.getElementById('listTitle').textContent = 'My ideas';
+  else                            document.getElementById('listTitle').textContent = 'All ideas';
+
+  renderSpotlight();
+  renderList();
+}
+
+function bylineSub(author, createdAt) {
+  const role = (author?.role || '').trim();
+  const left = role ? role.toUpperCase() : 'CONTRIBUTOR';
+  return left + ' · ' + (timeAgo(createdAt) || 'just now').toUpperCase();
+}
+
+function renderSpotlight() {
+  const root = document.getElementById('spotlight');
+  if (!root) return;
+  // top 3 most-upvoted Open-for-collab
+  const top = ideas
+    .filter(i => i.status === 'Open for collab')
+    .sort((a, b) => (b.upvotes || 0) - (a.upvotes || 0))
+    .slice(0, 3);
+
+  if (!top.length) { root.innerHTML = ''; document.getElementById('spotlightWrap').style.display = 'none'; return; }
+
+  const requested = new Set(getCollabRequested());
+  root.innerHTML = top.map((i) => {
+    const a = i.author || {};
+    const av = a.avatarColor || colorFor(a.name || i.id);
+    const isReq = requested.has(i.id);
+    return `
+    <article class="spot-card" data-id="${escapeHtml(i.id)}">
+      <div class="pill-row">
+        <span class="pill ${statusToPillClass(i.status)}"><span class="dot"></span>${escapeHtml(i.status.toUpperCase())}</span>
+        <span class="pill space">${escapeHtml(i.space || 'Other')}</span>
+        <button class="req-collab-btn ${isReq ? 'sent' : ''}" data-req-id="${escapeHtml(i.id)}">
+          ${isReq
+            ? '<svg viewBox="0 0 24 24"><path d="M5 12l4 4L19 6"/></svg>Requested'
+            : '<svg viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg>Request collab'}
+        </button>
+      </div>
+      <h3>${escapeHtml(i.title)}</h3>
+      <div class="desc">${escapeHtml((i.problem || '').slice(0, 180))}</div>
+      <div class="card-foot">
+        <div class="author">
+          <div class="avatar" style="background:${av}">${escapeHtml(initialsOf(a.name))}</div>
+          <div class="who">
+            <div class="name">${escapeHtml(a.name || 'Anonymous')}</div>
+            <div class="sub">${escapeHtml(bylineSub(a, i.createdAt))}</div>
+          </div>
+        </div>
+        <div class="spacer"></div>
+        <div class="upvote">↑ ${i.upvotes || 0}</div>
+      </div>
+    </article>`;
+  }).join('');
+
+  root.querySelectorAll('.spot-card').forEach(card => {
+    card.addEventListener('click', (e) => {
+      if (e.target.closest('.req-collab-btn')) {
+        e.stopPropagation();
+        requestCollab(card.dataset.id);
+        return;
+      }
+      openDetail(card.dataset.id);
+    });
+  });
+}
+
+function renderList() {
+  const root = document.getElementById('ideaList');
+  const arr  = getVisibleIdeas();
+  document.getElementById('listCount').textContent = arr.length;
+
+  if (!arr.length) {
+    root.innerHTML = `
+      <div class="empty">
+        <div class="emoji">💭</div>
+        <h3>No ideas yet</h3>
+        <p>${currentTab === 'mine' ? 'You haven\'t posted anything yet.' : currentTab === 'wins' ? 'No adopted ideas yet — the first one is coming.' : 'Be the first to post one.'}</p>
+      </div>`;
+    return;
+  }
+
+  const upvoted = new Set(getUpvoted());
+  const requested = new Set(getCollabRequested());
+  root.innerHTML = arr.map(i => {
+    const a = i.author || {};
+    const av = a.avatarColor || colorFor(a.name || i.id);
+    const isUp  = upvoted.has(i.id);
+    const isReq = requested.has(i.id);
+    return `
+    <article class="idea-row" data-id="${escapeHtml(i.id)}">
+      <div class="idea-body">
+        <div class="pill-row">
+          <span class="pill ${statusToPillClass(i.status)}"><span class="dot"></span>${escapeHtml(i.status.toUpperCase())}</span>
+          <span class="pill space">${escapeHtml(i.space || 'Other')}</span>
+          <button class="req-collab-btn ${isReq ? 'sent' : ''}" data-req-id="${escapeHtml(i.id)}">
+            ${isReq
+              ? '<svg viewBox="0 0 24 24"><path d="M5 12l4 4L19 6"/></svg>Requested'
+              : '<svg viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg>Request collab'}
+          </button>
+        </div>
+        <h4>${escapeHtml(i.title)}</h4>
+        <p class="desc">${escapeHtml((i.problem || '').slice(0, 220))}</p>
+        <div class="row-foot">
+          <div class="author">
+            <div class="avatar sm" style="background:${av}">${escapeHtml(initialsOf(a.name))}</div>
+            <div class="who">
+              <div class="name">${escapeHtml(a.name || 'Anonymous')}</div>
+              <div class="sub">${escapeHtml(bylineSub(a, i.createdAt))}</div>
+            </div>
+          </div>
+          <div class="row-stats">
+            <button class="stat upvote-btn ${isUp ? 'upvoted' : ''}" data-id="${escapeHtml(i.id)}">
+              <svg viewBox="0 0 24 24"><path d="M12 19V5M5 12l7-7 7 7"/></svg>
+              ${i.upvotes || 0}
+            </button>
+            <span class="stat">
+              <svg viewBox="0 0 24 24"><path d="M21 11.5a8.4 8.4 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.4 8.4 0 0 1-3.8-.9L3 21l1.9-5.7a8.4 8.4 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.4 8.4 0 0 1 3.8-.9h.5a8.5 8.5 0 0 1 8 8v.5z"/></svg>
+              ${i.comments || 0}
+            </span>
+          </div>
+        </div>
+      </div>
+    </article>`;
+  }).join('');
+
+  root.querySelectorAll('.idea-row').forEach(row => {
+    row.addEventListener('click', (e) => {
+      if (e.target.closest('.upvote-btn')) {
+        e.stopPropagation();
+        toggleUpvote(row.dataset.id);
+        return;
+      }
+      if (e.target.closest('.req-collab-btn')) {
+        e.stopPropagation();
+        requestCollab(row.dataset.id);
+        return;
+      }
+      openDetail(row.dataset.id);
+    });
+  });
+}
+
+/* ============================================================
+   Upvote
+   ============================================================ */
+function toggleUpvote(id) {
+  const upvoted = getUpvoted();
+  const idea = ideas.find(i => i.id === id);
+  if (!idea) return;
+  const idx = upvoted.indexOf(id);
+  if (idx >= 0) {
+    upvoted.splice(idx, 1);
+    idea.upvotes = Math.max(0, (idea.upvotes || 0) - 1);
+  } else {
+    upvoted.push(id);
+    idea.upvotes = (idea.upvotes || 0) + 1;
+  }
+  setUpvoted(upvoted);
+  saveToCache(ideas);
+  render();
+  postRemote('upvote', { id, delta: idx >= 0 ? -1 : 1 });
+}
+
+/* ============================================================
+   Idea detail modal
+   ============================================================ */
+function openDetail(id) {
+  const i = ideas.find(x => x.id === id);
+  if (!i) return;
+  openIdeaId = id;
+  const a = i.author || {};
+  const av = a.avatarColor || colorFor(a.name || i.id);
+
+  const isReq = getCollabRequested().includes(i.id);
+  document.getElementById('detailMeta').innerHTML = `
+    <span class="pill ${statusToPillClass(i.status)}"><span class="dot"></span>${escapeHtml(i.status.toUpperCase())}</span>
+    <span class="pill space">${escapeHtml(i.space || 'Other')}</span>
+    <button class="req-collab-btn ${isReq ? 'sent' : ''}" id="detailReqCollab">
+      ${isReq
+        ? '<svg viewBox="0 0 24 24"><path d="M5 12l4 4L19 6"/></svg>Requested'
+        : '<svg viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg>Request collab'}
+    </button>`;
+  document.getElementById('detailTitle').textContent    = i.title;
+  document.getElementById('detailProblem').textContent  = i.problem  || '—';
+  document.getElementById('detailProposal').textContent = i.proposal || '—';
+  document.getElementById('detailMeasure').textContent  = i.measure  || '—';
+
+  const avEl = document.getElementById('detailAvatar');
+  avEl.textContent = initialsOf(a.name);
+  avEl.style.background = av;
+  document.getElementById('detailAuthor').textContent = a.name || 'Anonymous';
+  document.getElementById('detailWhen').textContent   = bylineSub(a, i.createdAt);
+
+  // hook up the request-collab button inside the modal
+  const reqBtn = document.getElementById('detailReqCollab');
+  if (reqBtn) {
+    reqBtn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      requestCollab(i.id);
+      openDetail(i.id);
+    });
+  }
+  document.getElementById('detailUpvoteCount').textContent = i.upvotes || 0;
+
+  const upBtn = document.getElementById('detailUpvote');
+  upBtn.classList.toggle('btn-coral', getUpvoted().includes(id));
+
+  // admin controls
+  const adminWrap = document.getElementById('detailAdminControls');
+  if (isAdmin()) {
+    adminWrap.style.display = 'inline-flex';
+    document.getElementById('detailStatus').value = i.status;
+  } else {
+    adminWrap.style.display = 'none';
+  }
+
+  document.getElementById('detailModal').classList.add('on');
+}
+function closeDetail() {
+  document.getElementById('detailModal').classList.remove('on');
+  openIdeaId = null;
+}
+document.getElementById('detailModal').addEventListener('click', (e) => {
+  if (e.target.id === 'detailModal') closeDetail();
+});
+document.getElementById('detailUpvote').addEventListener('click', () => {
+  if (!openIdeaId) return;
+  toggleUpvote(openIdeaId);
+  // re-render modal counts
+  openDetail(openIdeaId);
+});
+document.getElementById('detailStatus').addEventListener('change', (e) => {
+  if (!openIdeaId) return;
+  const idea = ideas.find(i => i.id === openIdeaId);
+  if (!idea) return;
+  idea.status = e.target.value;
+  idea.updatedAt = new Date().toISOString();
+  saveToCache(ideas);
+  postRemote('updateStatus', { id: openIdeaId, status: idea.status });
+  toast('Status updated');
+  render();
+  openDetail(openIdeaId);
+});
+
+/* ============================================================
+   View switching
+   ============================================================ */
+function showView(name) {
+  document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
+  if (name === 'post')      document.getElementById('postView').classList.add('active');
+  else                      document.getElementById('feedView').classList.add('active');
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+/* ============================================================
+   Tab switching
+   ============================================================ */
+document.querySelectorAll('.top-tab').forEach(b => {
+  b.addEventListener('click', () => {
+    document.querySelectorAll('.top-tab').forEach(x => x.classList.remove('active'));
+    b.classList.add('active');
+    currentTab = b.dataset.tab;
+    if (currentTab === 'wins') currentFilter = 'all';
+    showView('feed');
+    render();
+  });
+});
+
+document.querySelectorAll('.chip[data-filter]').forEach(b => {
+  b.addEventListener('click', () => {
+    document.querySelectorAll('.chip[data-filter]').forEach(x => x.classList.remove('active'));
+    b.classList.add('active');
+    currentFilter = b.dataset.filter;
+    render();
+  });
+});
+
+document.getElementById('sortBtn').addEventListener('click', () => {
+  currentSort = currentSort === 'recent' ? 'upvotes' : 'recent';
+  document.getElementById('sortLabel').textContent = 'Sort: ' + (currentSort === 'recent' ? 'Most recent' : 'Most upvoted');
+  render();
+});
+
+document.getElementById('searchInput').addEventListener('input', (e) => {
+  currentSearch = e.target.value.trim();
+  render();
+});
+document.addEventListener('keydown', (e) => {
+  if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 'k') {
+    e.preventDefault();
+    document.getElementById('searchInput').focus();
+  }
+  if (e.key === 'Escape') closeDetail();
+});
+
+/* ============================================================
+   Post form
+   ============================================================ */
+function getUserRole() {
+  try { return localStorage.getItem('ideas.userRole') || ''; } catch (_) { return ''; }
+}
+function setUserRole(r) {
+  try { localStorage.setItem('ideas.userRole', r); } catch (_) {}
+}
+
+function openPostForm() {
+  // prefill name + role if known
+  const n = getUserName();
+  const r = getUserRole();
+  document.getElementById('fName').value = n;
+  document.getElementById('fRole').value = r;
+  document.getElementById('formAuthorName').textContent  = n || 'You';
+  document.getElementById('formAuthorAvatar').textContent = initialsOf(n || 'You');
+  document.getElementById('formAuthorAvatar').style.background = colorFor(n || 'You');
+  // load draft if any
+  try {
+    const draft = JSON.parse(localStorage.getItem(DRAFT_KEY) || 'null');
+    if (draft) {
+      document.getElementById('fTitle').value    = draft.title    || '';
+      document.getElementById('fProblem').value  = draft.problem  || '';
+      document.getElementById('fProposal').value = draft.proposal || '';
+      document.getElementById('fMeasure').value  = draft.measure  || '';
+      if (draft.space)  selectChip('spaceGroup',  draft.space);
+      if (draft.status) selectChip('statusGroup', draft.status);
+    }
+  } catch (_) {}
+  updatePreview();
+  showView('post');
+  setTimeout(() => document.getElementById('fTitle').focus(), 80);
+}
+
+function selectChip(groupId, value) {
+  document.querySelectorAll('#' + groupId + ' .chip').forEach(c => {
+    c.classList.toggle('selected', c.dataset.space === value || c.dataset.status === value);
+  });
+}
+
+document.querySelectorAll('#spaceGroup .chip').forEach(c => {
+  c.addEventListener('click', () => {
+    selectChip('spaceGroup', c.dataset.space);
+    updatePreview();
+  });
+});
+document.querySelectorAll('#statusGroup .chip').forEach(c => {
+  c.addEventListener('click', () => {
+    selectChip('statusGroup', c.dataset.status);
+    updatePreview();
+  });
+});
+
+['fTitle','fProblem','fProposal','fMeasure','fName','fRole'].forEach(id => {
+  document.getElementById(id).addEventListener('input', updatePreview);
+});
+
+function readForm() {
+  const space  = document.querySelector('#spaceGroup .chip.selected')?.dataset.space  || 'Internal';
+  const status = document.querySelector('#statusGroup .chip.selected')?.dataset.status || 'Open for collab';
+  return {
+    name:     document.getElementById('fName').value.trim(),
+    role:     document.getElementById('fRole').value.trim(),
+    title:    document.getElementById('fTitle').value.trim(),
+    problem:  document.getElementById('fProblem').value.trim(),
+    proposal: document.getElementById('fProposal').value.trim(),
+    measure:  document.getElementById('fMeasure').value.trim(),
+    space,
+    status,
+  };
+}
+
+function updatePreview() {
+  const f = readForm();
+  document.getElementById('prevTitle').textContent = f.title || 'Your idea title';
+  document.getElementById('prevDesc').textContent  = (f.problem || 'A short summary of what this is about.').slice(0, 180);
+  document.getElementById('prevSpace').textContent = f.space;
+  document.getElementById('prevStatus').className  = 'pill ' + statusToPillClass(f.status);
+  document.getElementById('prevStatus').innerHTML  = '<span class="dot"></span>' + f.status;
+  const nm = f.name || 'You';
+  const rl = f.role || 'Contributor';
+  document.getElementById('prevAvatar').textContent = initialsOf(nm);
+  document.getElementById('prevAvatar').style.background = colorFor(nm);
+  document.getElementById('prevName').textContent = nm;
+  // also update the author-card on the form itself
+  document.getElementById('formAuthorName').textContent  = nm;
+  document.getElementById('formAuthorRole').textContent  = rl;
+  document.getElementById('formAuthorAvatar').textContent = initialsOf(nm);
+  document.getElementById('formAuthorAvatar').style.background = colorFor(nm);
+}
+
+function saveDraft() {
+  const f = readForm();
+  try { localStorage.setItem(DRAFT_KEY, JSON.stringify(f)); } catch (_) {}
+  toast('Draft saved');
+}
+
+function postIdea(asPreview) {
+  const f = readForm();
+  if (!f.name) {
+    toast('Add your name first');
+    document.getElementById('fName').focus();
+    return;
+  }
+  if (!f.title) {
+    toast('Title is required');
+    document.getElementById('fTitle').focus();
+    return;
+  }
+  setUserName(f.name);
+  setUserRole(f.role);
+
+  const openCollab = document.getElementById('fOpenCollab').checked;
+  const finalStatus = openCollab && f.status === 'Draft' ? 'Open for collab' : f.status;
+
+  const newIdea = {
+    id: 'local-' + Date.now() + '-' + Math.random().toString(36).slice(2, 7),
+    title:    f.title,
+    problem:  f.problem,
+    proposal: f.proposal,
+    measure:  f.measure,
+    space:    f.space,
+    status:   finalStatus,
+    author: {
+      name:        f.name,
+      role:        f.role,
+      initials:    initialsOf(f.name),
+      avatarColor: colorFor(f.name),
+    },
+    upvotes: 0,
+    comments: 0,
+    createdAt: new Date().toISOString(),
+  };
+
+  ideas.unshift(newIdea);
+  saveToCache(ideas);
+
+  // clear draft
+  try { localStorage.removeItem(DRAFT_KEY); } catch (_) {}
+
+  // remote
+  postRemote('create', { idea: newIdea });
+
+  toast(asPreview ? 'Previewed and posted' : 'Idea posted');
+  showView('feed');
+  render();
+
+  // open the new one
+  setTimeout(() => openDetail(newIdea.id), 250);
+}
+
+/* ============================================================
+   Toast
+   ============================================================ */
+let toastTimer = null;
+function toast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('on');
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => t.classList.remove('on'), 2200);
+}
+
+/* ============================================================
+   Boot
+   ============================================================ */
+loadIdeas();
+</script>
+
+</body>
+</html>
