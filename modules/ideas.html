@@ -812,6 +812,130 @@
     border-top: 1px solid var(--line-2);
   }
   .modal-foot .left { flex: 1; }
+  /* collaborators */
+  .collab-list {
+    display: flex; flex-wrap: wrap; gap: 8px;
+  }
+  .collab-chip {
+    display: inline-flex; align-items: center; gap: 8px;
+    padding: 5px 12px 5px 5px;
+    background: var(--page);
+    border-radius: 999px;
+    font-size: 12.5px;
+    font-weight: 500;
+    color: var(--ink);
+  }
+  .collab-chip .avatar { width: 24px; height: 24px; font-size: 9px; }
+
+  /* attachments — pending list (in form) + display (in modal) */
+  .attach-list {
+    display: flex; flex-direction: column; gap: 8px;
+  }
+  .attach-item {
+    display: flex; align-items: center; gap: 12px;
+    padding: 10px 12px;
+    background: var(--page);
+    border-radius: 10px;
+    text-decoration: none;
+    color: var(--ink);
+    font-size: 13px;
+  }
+  .attach-item:hover { background: #E7E9F1; }
+  .attach-item .thumb {
+    width: 40px; height: 40px;
+    border-radius: 7px;
+    background: #fff;
+    border: 1px solid var(--line);
+    display: grid; place-items: center;
+    flex-shrink: 0;
+    overflow: hidden;
+  }
+  .attach-item .thumb img { width: 100%; height: 100%; object-fit: cover; }
+  .attach-item .thumb svg { width: 18px; height: 18px; stroke: var(--ink-2); fill: none; stroke-width: 1.8; }
+  .attach-item .body {
+    flex: 1; min-width: 0;
+    display: flex; flex-direction: column; gap: 2px;
+  }
+  .attach-item .name {
+    font-weight: 500;
+    color: var(--ink);
+    overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+  }
+  .attach-item .sub {
+    font-size: 11px;
+    color: var(--muted);
+  }
+  .attach-item .remove {
+    background: transparent;
+    border: 0;
+    color: var(--muted);
+    padding: 4px;
+    border-radius: 5px;
+    cursor: pointer;
+    display: grid; place-items: center;
+  }
+  .attach-item .remove:hover { color: var(--ink); background: rgba(0,0,0,0.05); }
+  .attach-item .remove svg { width: 14px; height: 14px; stroke: currentColor; fill: none; stroke-width: 2; }
+
+  /* attachment field controls (in form) */
+  .attach-controls {
+    display: flex; flex-wrap: wrap; gap: 10px;
+    margin-bottom: 12px;
+  }
+  .attach-drop {
+    flex: 1;
+    min-width: 220px;
+    border: 1.5px dashed var(--line);
+    border-radius: 10px;
+    padding: 18px 14px;
+    text-align: center;
+    color: var(--ink-2);
+    font-size: 12.5px;
+    cursor: pointer;
+    transition: border-color 0.15s, background 0.15s, color 0.15s;
+    position: relative;
+  }
+  .attach-drop:hover, .attach-drop.dragover {
+    border-color: var(--navy-2);
+    background: rgba(18,50,87,0.04);
+    color: var(--navy);
+  }
+  .attach-drop input[type="file"] {
+    position: absolute; inset: 0;
+    opacity: 0;
+    cursor: pointer;
+  }
+  .attach-drop svg { width: 18px; height: 18px; stroke: currentColor; fill: none; stroke-width: 1.8; vertical-align: -4px; margin-right: 6px; }
+
+  .attach-link-row {
+    flex: 1;
+    min-width: 220px;
+    display: flex; gap: 8px;
+  }
+  .attach-link-row input {
+    flex: 1;
+    padding: 10px 12px;
+    border: 1px solid var(--line);
+    border-radius: 10px;
+    background: #fff;
+    font: inherit;
+    font-size: 13px;
+    color: var(--ink);
+  }
+  .attach-link-row input:focus { outline: none; border-color: var(--navy-2); box-shadow: 0 0 0 3px rgba(18,50,87,0.08); }
+  .attach-link-row .add-link-btn {
+    padding: 9px 14px;
+    background: var(--navy-2);
+    color: #fff;
+    border: 0;
+    border-radius: 10px;
+    font: inherit;
+    font-size: 12.5px;
+    font-weight: 500;
+    cursor: pointer;
+  }
+  .attach-link-row .add-link-btn:hover { background: var(--navy-deep); }
+
   .status-select {
     padding: 8px 12px;
     border: 1px solid var(--line);
@@ -825,6 +949,142 @@
     font-size: 11px;
     color: var(--muted);
     margin-right: 8px;
+  }
+
+  /* reusable small modal pieces (collab name, merge picker, merge confirm) */
+  .modal.sm { max-width: 440px; }
+  .modal.md { max-width: 560px; }
+  .modal h3.modal-title {
+    margin: 0 0 6px;
+    font-size: 18px;
+    font-weight: 600;
+    color: var(--navy);
+    letter-spacing: -0.01em;
+  }
+  .modal p.modal-sub {
+    margin: 0 0 18px;
+    font-size: 13px;
+    color: var(--ink-2);
+    line-height: 1.55;
+  }
+  .modal label.modal-label {
+    display: block;
+    font-size: 10px;
+    letter-spacing: 1.4px;
+    text-transform: uppercase;
+    color: var(--ink-2);
+    font-weight: 600;
+    margin: 0 0 6px;
+  }
+  .modal input.modal-input,
+  .modal select.modal-input {
+    width: 100%;
+    padding: 11px 13px;
+    border: 1px solid var(--line);
+    border-radius: 10px;
+    background: #fff;
+    font: inherit;
+    font-size: 14px;
+    color: var(--ink);
+  }
+  .modal input.modal-input:focus,
+  .modal select.modal-input:focus {
+    outline: none;
+    border-color: var(--navy-2);
+    box-shadow: 0 0 0 3px rgba(18,50,87,0.08);
+  }
+  .modal .modal-foot {
+    display: flex; align-items: center; justify-content: flex-end;
+    gap: 8px;
+    margin-top: 22px;
+    padding-top: 18px;
+    border-top: 1px solid var(--line-2);
+  }
+  .modal .modal-foot.no-border { border-top: 0; padding-top: 8px; }
+
+  /* merge picker list */
+  .merge-pick-list {
+    margin-top: 6px;
+    max-height: 320px;
+    overflow-y: auto;
+    display: flex; flex-direction: column;
+    gap: 6px;
+    padding: 4px 2px;
+  }
+  .merge-pick-item {
+    display: flex; align-items: center; gap: 12px;
+    padding: 12px 14px;
+    border: 1px solid var(--line);
+    border-radius: 10px;
+    background: #fff;
+    cursor: pointer;
+    transition: border-color 0.15s, background 0.15s, transform 0.1s;
+    text-align: left;
+    font: inherit;
+    color: var(--ink);
+    width: 100%;
+  }
+  .merge-pick-item:hover { border-color: var(--navy-2); background: rgba(18,50,87,0.04); }
+  .merge-pick-item.selected {
+    border-color: var(--navy-2);
+    background: rgba(18,50,87,0.08);
+    box-shadow: 0 0 0 2px var(--navy-2) inset;
+  }
+  .merge-pick-item .body { flex: 1; min-width: 0; }
+  .merge-pick-item .title {
+    font-size: 13.5px;
+    font-weight: 600;
+    color: var(--navy);
+    overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+  }
+  .merge-pick-item .sub {
+    font-size: 11px;
+    color: var(--muted);
+    margin-top: 2px;
+  }
+
+  /* author-role radio */
+  .role-pick {
+    display: flex; flex-direction: column; gap: 8px;
+    margin-top: 10px;
+  }
+  .role-pick label {
+    display: flex; align-items: center; gap: 12px;
+    padding: 12px 14px;
+    border: 1px solid var(--line);
+    border-radius: 10px;
+    cursor: pointer;
+    transition: border-color 0.15s, background 0.15s;
+  }
+  .role-pick label:hover { border-color: var(--navy-2); }
+  .role-pick input[type="radio"] { accent-color: var(--navy-2); }
+  .role-pick label.checked { border-color: var(--navy-2); background: rgba(18,50,87,0.05); }
+  .role-pick .who {
+    flex: 1;
+    display: flex; align-items: center; gap: 10px;
+  }
+  .role-pick .who .name { font-size: 13px; font-weight: 600; color: var(--navy); }
+  .role-pick .role-tag {
+    font-size: 10px;
+    letter-spacing: 0.6px;
+    text-transform: uppercase;
+    color: var(--ink-2);
+  }
+
+  /* avatar stack (author + coauth) */
+  .avatar-stack {
+    display: inline-flex;
+    flex-shrink: 0;
+  }
+  .avatar-stack .avatar {
+    border: 2px solid #fff;
+    box-sizing: content-box;
+  }
+  .avatar-stack .avatar + .avatar {
+    margin-left: -10px;
+  }
+  .avatar-stack .avatar.sm + .avatar.sm {
+    margin-left: -8px;
   }
 
   /* tiny toast */
@@ -918,7 +1178,6 @@
     <div class="filter-row" id="filterRow">
       <button class="chip active" data-filter="all">All</button>
       <button class="chip" data-filter="open">Open for collab</button>
-      <button class="chip" data-filter="coauth">Needs co-authors</button>
       <button class="chip" data-filter="review">In review</button>
       <button class="chip" data-filter="adopted">Adopted</button>
       <div class="sort-wrap">
@@ -975,15 +1234,9 @@
           <div class="lock">Only you can edit the title later. Anyone who joins as a collaborator can edit everything else.</div>
         </div>
 
-        <div class="two-col">
-          <div class="field">
-            <label>Your name <span class="req">*</span> <span class="hint">Shown on the idea card.</span></label>
-            <input type="text" id="fName" placeholder="e.g. Mara Linao" />
-          </div>
-          <div class="field">
-            <label>Your title <span class="hint">e.g. Engineering Lead, Product Designer.</span></label>
-            <input type="text" id="fRole" placeholder="e.g. Engineering Lead" />
-          </div>
+        <div class="field">
+          <label>Your name <span class="req">*</span> <span class="hint">Shown on the idea card.</span></label>
+          <input type="text" id="fName" placeholder="e.g. Mara Linao" />
         </div>
 
         <div class="field">
@@ -1025,7 +1278,23 @@
 
         <div class="field">
           <label>How we'll know it worked <span class="hint">One or two measurable signals.</span></label>
-          <textarea id="fMeasure" placeholder="Resident attrition rate, average on-call shifts per resident per month..."></textarea>
+          <textarea id="fMeasure" placeholder="What metric goes up, what goes down."></textarea>
+        </div>
+
+        <div class="field">
+          <label>Attachments &amp; references <span class="hint">Mock-ups, designs, docs, or paste a link (Figma, Drive, Notion, anything).</span></label>
+          <div class="attach-controls">
+            <label class="attach-drop" id="attachDrop">
+              <svg viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M17 8l-5-5-5 5M12 3v12"/></svg>
+              <span>Drop files or click to upload</span>
+              <input type="file" id="attachFile" multiple />
+            </label>
+            <div class="attach-link-row">
+              <input type="text" id="attachLink" placeholder="Paste a link (https://...)" spellcheck="false" />
+              <button type="button" class="add-link-btn" id="attachLinkBtn">Add</button>
+            </div>
+          </div>
+          <div class="attach-list" id="pendingAttachList"></div>
         </div>
 
         <div class="form-foot">
@@ -1102,17 +1371,17 @@
       <h6>How we'll know it worked</h6>
       <div class="body" id="detailMeasure">—</div>
     </section>
+    <section id="detailAttachSection" style="display:none">
+      <h6>Attachments &amp; references</h6>
+      <div class="attach-list" id="detailAttachList"></div>
+    </section>
+    <section id="detailCollabSection" style="display:none">
+      <h6>Collaborators</h6>
+      <div class="collab-list" id="detailCollabList"></div>
+    </section>
 
     <div class="modal-foot">
-      <div class="left">
-        <div class="author">
-          <div class="avatar sm" id="detailAvatar">—</div>
-          <div class="who">
-            <div class="name" id="detailAuthor">—</div>
-            <div class="sub" id="detailWhen">—</div>
-          </div>
-        </div>
-      </div>
+      <div class="left" id="detailAuthorBlock"></div>
       <button class="btn-ghost" id="detailUpvote">
         <svg viewBox="0 0 24 24" style="width:14px;height:14px;stroke:currentColor;fill:none;stroke-width:2;"><path d="M12 19V5M5 12l7-7 7 7"/></svg>
         <span id="detailUpvoteCount">0</span>
@@ -1126,7 +1395,61 @@
           <option>In review</option>
           <option>Adopted</option>
         </select>
+        <button class="btn-ghost" id="detailMergeBtn" title="Merge another idea into this one" style="margin-left:6px;">
+          <svg viewBox="0 0 24 24" style="width:14px;height:14px;stroke:currentColor;fill:none;stroke-width:2;"><path d="M8 3L3 8l5 5M3 8h13a5 5 0 0 1 5 5v8M16 21l5-5-5-5"/></svg>
+          Merge in…
+        </button>
       </span>
+    </div>
+  </div>
+</div>
+
+<!-- =========================================================
+     Collab request modal
+     ========================================================= -->
+<div class="modal-backdrop" id="collabModal">
+  <div class="modal sm">
+    <button class="modal-close" id="collabModalClose"><svg viewBox="0 0 24 24"><path d="M18 6L6 18M6 6l12 12"/></svg></button>
+    <h3 class="modal-title">Request to collaborate</h3>
+    <p class="modal-sub" id="collabModalSub">Your name will be added to this idea's collaborators list. The author will see your request.</p>
+    <label class="modal-label" for="collabModalInput">Your name</label>
+    <input type="text" id="collabModalInput" class="modal-input" placeholder="e.g. Mara Linao" autocomplete="off" />
+    <div class="modal-foot">
+      <button class="btn-ghost" id="collabModalCancel">Cancel</button>
+      <button class="btn-coral" id="collabModalSubmit">Send request</button>
+    </div>
+  </div>
+</div>
+
+<!-- =========================================================
+     Merge ideas: picker modal
+     ========================================================= -->
+<div class="modal-backdrop" id="mergePickModal">
+  <div class="modal md">
+    <button class="modal-close" id="mergePickClose"><svg viewBox="0 0 24 24"><path d="M18 6L6 18M6 6l12 12"/></svg></button>
+    <h3 class="modal-title">Merge another idea into this one</h3>
+    <p class="modal-sub">Pick the idea you want to merge in. Its content gets appended here, its author becomes a co-author, and the original idea is removed.</p>
+    <label class="modal-label">Choose an idea</label>
+    <div class="merge-pick-list" id="mergePickList"></div>
+    <div class="modal-foot">
+      <button class="btn-ghost" id="mergePickCancel">Cancel</button>
+      <button class="btn-coral" id="mergePickNext" disabled style="opacity:0.5; pointer-events:none;">Next →</button>
+    </div>
+  </div>
+</div>
+
+<!-- =========================================================
+     Merge ideas: confirm modal (pick main author)
+     ========================================================= -->
+<div class="modal-backdrop" id="mergeConfirmModal">
+  <div class="modal sm">
+    <button class="modal-close" id="mergeConfirmClose"><svg viewBox="0 0 24 24"><path d="M18 6L6 18M6 6l12 12"/></svg></button>
+    <h3 class="modal-title">Who is the main author?</h3>
+    <p class="modal-sub">Pick which person stays as the main author. The other becomes a co-author. Both names appear on the idea card.</p>
+    <div class="role-pick" id="rolePick"></div>
+    <div class="modal-foot">
+      <button class="btn-ghost" id="mergeConfirmBack">Back</button>
+      <button class="btn-coral" id="mergeConfirmSubmit">Merge ideas</button>
     </div>
   </div>
 </div>
@@ -1145,9 +1468,9 @@
      3. Until then, ideas live in localStorage only (single user).
    ============================================================ */
 
-const APPS_SCRIPT_URL = '';   // <-- paste your Apps Script /exec URL here
+const APPS_SCRIPT_URL = 'https://script.google.com/a/macros/bizbox.ph/s/AKfycbxaJUqHR99WH-VWJFFBBGGYHHh52ZRQq0JiFwsLSkM_ShBrgIk-Kov6T5CSrAf5DFGp/exec';
 const ADMIN_KEY       = 'projex.admin';
-const CACHE_KEY       = 'ideas.cache.v1';
+const CACHE_KEY       = 'ideas.cache.v2';
 const NAME_KEY        = 'ideas.userName';
 const DRAFT_KEY       = 'ideas.draft.v1';
 const UPVOTE_KEY      = 'ideas.upvotedBy.v1';   // local upvote dedupe
@@ -1165,106 +1488,14 @@ const AVATAR_PALETTE = ['#F26B5A','#FFC4B0','#2DBA8B','#5C7CFA','#E2A33C','#A78B
 /* ============================================================
    Sample seed data — replaces empty state on first load.
    ============================================================ */
-const SEED = [
-  {
-    id: 'seed-1',
-    title: 'Unified release notes hub for all Bizbox products',
-    problem: 'We ship updates to HIS, BMD, and the Payment Portal on different cadences. Clients hear about a change two weeks late on the wrong channel — or not at all.',
-    proposal: '1. Central /whats-new page that aggregates from each product feed.\n2. Per-product subscription so clinics see only what they use.\n3. Email digest on the first of the month.',
-    measure: 'Open rate of the digest email, ticket volume on "I didn\'t know about X" questions.',
-    space: 'Internal',
-    status: 'Open for collab',
-    author: { name: 'Anna Cordero', role: 'Product Manager', initials: 'AC', avatarColor: '#5C7CFA' },
-    upvotes: 12,
-    comments: 3,
-    createdAt: '2026-05-18T10:00:00Z',
-  },
-  {
-    id: 'seed-2',
-    title: 'Auto-flag duplicate patient records on intake',
-    problem: 'The same patient walks in to two sites in the network. We end up with two charts, two billings, and a manual merge weeks later — sometimes never.',
-    proposal: '1. On new-patient save, run a soft match on name + DOB + phone.\n2. Show reception a "Possible match found" card linking to the existing chart.\n3. One-click merge if it\'s confirmed.',
-    measure: 'Duplicate merge requests per month, % of new patients who hit the match prompt.',
-    space: 'HIS',
-    status: 'In review',
-    author: { name: 'Phia Salazar', role: 'Solutions Engineer', initials: 'PS', avatarColor: '#E2A33C' },
-    upvotes: 27,
-    comments: 8,
-    createdAt: '2026-05-21T09:00:00Z',
-  },
-  {
-    id: 'seed-3',
-    title: 'Keyboard shortcuts for the BMD appointment view',
-    problem: 'Power users (doctors with full clinics) spend most of their day on the appointment grid. Every click is a fraction of a second they don\'t have.',
-    proposal: 'Add J/K to move between appointments, N to create a new one, V to open vitals, R to mark completed. Show a cheat sheet on "?".',
-    measure: 'Daily active power users, average time-to-next-action on appointment view.',
-    space: 'BMD',
-    status: 'Open for collab',
-    author: { name: 'Joel Bautista', role: 'Engineering Lead', initials: 'JB', avatarColor: '#3BA1B5' },
-    upvotes: 18,
-    comments: 4,
-    createdAt: '2026-05-19T14:00:00Z',
-  },
-  {
-    id: 'seed-4',
-    title: 'Single sign-on across HIS, BMD, and Payment Portal',
-    problem: 'Staff keep three sets of credentials and password reset is the #1 support ticket category.',
-    proposal: 'Move all three products behind a single Bizbox Identity provider. Existing accounts get linked on next login.',
-    measure: 'Password-reset tickets per month, time-to-login from cold open, % of users on linked accounts.',
-    space: 'Workflow',
-    status: 'Adopted',
-    author: { name: 'Mira Ocampo', role: 'Platform Architect', initials: 'MO', avatarColor: '#A78BFA' },
-    upvotes: 89,
-    comments: 34,
-    createdAt: '2026-05-10T10:00:00Z',
-  },
-  {
-    id: 'seed-5',
-    title: 'Patient mobile app for prescription refills',
-    problem: 'Refill requests come in by phone, by walk-in, sometimes by FB Messenger. The pharmacy team chases approvals from the prescribing doctor manually.',
-    proposal: 'A small patient app: tap a past prescription, request refill. Doctor approves with one tap from BMD. Pharmacy gets a queued task.',
-    measure: 'Refill turnaround time, % of refills initiated digitally.',
-    space: 'New project',
-    status: 'Open for collab',
-    author: { name: 'Lyka Domingo', role: 'Product Designer', initials: 'LD', avatarColor: '#F4B0C0' },
-    upvotes: 22,
-    comments: 7,
-    createdAt: '2026-05-15T11:00:00Z',
-  },
-  {
-    id: 'seed-6',
-    title: 'Unified empty-state illustrations across the design system',
-    problem: 'Every product has its own empty state — some have nothing at all. New users land on a blank screen and bounce.',
-    proposal: 'A shared set of 12 friendly empty-state illustrations + standard copy patterns. Published as part of Beacon.',
-    measure: 'Adoption rate across products, qualitative feedback on first-run experience.',
-    space: 'Design',
-    status: 'Open for collab',
-    author: { name: 'Tomas Reyes', role: 'Design Lead', initials: 'TR', avatarColor: '#2DBA8B' },
-    upvotes: 18,
-    comments: 5,
-    createdAt: '2026-05-14T09:00:00Z',
-  },
-  {
-    id: 'seed-7',
-    title: 'Async daily standup tool inside Slack',
-    problem: 'Standups eat 20 minutes per team per day. Half the team is in another timezone or on call.',
-    proposal: 'A Slack-native bot. Asks 3 questions at 9am local time. Posts the team digest at 10am. No video calls required.',
-    measure: 'Meeting hours per week, team participation rate.',
-    space: 'Internal',
-    status: 'In review',
-    author: { name: 'Bea Esquivel', role: 'Engineering Manager', initials: 'BE', avatarColor: '#F26B5A' },
-    upvotes: 14,
-    comments: 2,
-    createdAt: '2026-05-17T11:00:00Z',
-  },
-];
+const SEED = [];
 
 /* ============================================================
    State
    ============================================================ */
 let ideas = [];
 let currentTab    = 'all';     // 'all' | 'mine' | 'wins'
-let currentFilter = 'all';     // 'all' | 'open' | 'coauth' | 'review' | 'adopted'
+let currentFilter = 'all';     // 'all' | 'open' | 'review' | 'adopted'
 let currentSort   = 'recent';  // 'recent' | 'upvotes'
 let currentSearch = '';
 let openIdeaId    = null;
@@ -1298,18 +1529,292 @@ function getCollabRequested() {
 function setCollabRequested(arr) {
   try { localStorage.setItem(COLLAB_KEY, JSON.stringify(arr)); } catch (_) {}
 }
+/* requestCollab → opens the collab-name modal (always).
+   The actual record-the-request work happens in submitCollabRequest. */
+let pendingCollabIdeaId = null;
 function requestCollab(id) {
-  const list = getCollabRequested();
-  if (list.includes(id)) {
+  if (getCollabRequested().includes(id)) {
     toast('You\'ve already requested to collab on this');
     return;
   }
-  list.push(id);
-  setCollabRequested(list);
-  postRemote('collabRequest', { id, by: getUserName() || 'Anonymous' });
-  toast('Collab request sent — the author will see it');
-  render();
+  const idea = ideas.find(x => x.id === id);
+  if (!idea) return;
+  pendingCollabIdeaId = id;
+  // populate the modal copy with idea title for context
+  const sub = document.getElementById('collabModalSub');
+  if (sub) sub.textContent = 'You\'ll be added as a collaborator on "' + idea.title + '" — the author will see your request.';
+  const input = document.getElementById('collabModalInput');
+  input.value = getUserName();
+  document.getElementById('collabModal').classList.add('on');
+  setTimeout(() => input.focus(), 50);
 }
+
+function closeCollabModal() {
+  document.getElementById('collabModal').classList.remove('on');
+  pendingCollabIdeaId = null;
+}
+
+function submitCollabRequest() {
+  const id = pendingCollabIdeaId;
+  if (!id) { closeCollabModal(); return; }
+  const name = document.getElementById('collabModalInput').value.trim();
+  if (!name) {
+    document.getElementById('collabModalInput').focus();
+    return;
+  }
+  const idea = ideas.find(x => x.id === id);
+  if (!idea) { closeCollabModal(); return; }
+
+  // Don't let the author add themselves as a collaborator.
+  const authorName = (idea.author?.name || '').trim().toLowerCase();
+  if (authorName && authorName === name.trim().toLowerCase()) {
+    toast('You\'re the author — no need to request collab');
+    closeCollabModal();
+    return;
+  }
+
+  setUserName(name);
+  const list = getCollabRequested();
+  if (!list.includes(id)) {
+    list.push(id);
+    setCollabRequested(list);
+  }
+
+  if (!Array.isArray(idea.collaborators)) idea.collaborators = [];
+  const exists = idea.collaborators.some(c => (c.name || '').toLowerCase() === name.toLowerCase());
+  if (!exists) {
+    idea.collaborators.push({
+      name,
+      initials:    initialsOf(name),
+      avatarColor: colorFor(name),
+    });
+    saveToCache(ideas);
+  }
+  postRemote('collabRequest', {
+    id,
+    collaborator: {
+      name,
+      initials:    initialsOf(name),
+      avatarColor: colorFor(name),
+    },
+  });
+  toast('Collab request sent — you\'re listed as a collaborator');
+  closeCollabModal();
+  render();
+  // re-open the detail modal if it was open so the user sees their name appear
+  if (openIdeaId === id) openDetail(id);
+}
+
+/* Wire the collab modal buttons (boot-time) */
+(function wireCollabModal() {
+  const modal = document.getElementById('collabModal');
+  if (!modal) return;
+  document.getElementById('collabModalClose').addEventListener('click', closeCollabModal);
+  document.getElementById('collabModalCancel').addEventListener('click', closeCollabModal);
+  document.getElementById('collabModalSubmit').addEventListener('click', submitCollabRequest);
+  modal.addEventListener('click', (e) => { if (e.target === modal) closeCollabModal(); });
+  document.getElementById('collabModalInput').addEventListener('keydown', (e) => {
+    if (e.key === 'Enter') { e.preventDefault(); submitCollabRequest(); }
+  });
+})();
+
+/* ============================================================
+   Merge ideas (admin only) — pick → confirm → execute
+   ============================================================ */
+let mergeTargetId   = null;   // the idea staying (current detail-modal idea)
+let mergeSourceId   = null;   // the idea being merged IN
+let mergeMainIsHere = true;   // true: target's author stays main; false: source's author becomes main
+
+function openMergePicker(targetId) {
+  mergeTargetId   = targetId;
+  mergeSourceId   = null;
+  mergeMainIsHere = true;
+  renderMergePickList();
+  document.getElementById('mergePickModal').classList.add('on');
+}
+
+function renderMergePickList() {
+  const root = document.getElementById('mergePickList');
+  const others = ideas.filter(x => x.id !== mergeTargetId);
+  if (!others.length) {
+    root.innerHTML = '<div style="padding:18px 14px; color:var(--ink-2); font-size:13px; text-align:center;">No other ideas to merge in yet.</div>';
+    document.getElementById('mergePickNext').disabled = true;
+    document.getElementById('mergePickNext').style.opacity = '0.5';
+    document.getElementById('mergePickNext').style.pointerEvents = 'none';
+    return;
+  }
+  root.innerHTML = others.map(o => {
+    const a = o.author || {};
+    const av = a.avatarColor || colorFor(a.name || o.id);
+    return `
+      <button type="button" class="merge-pick-item ${o.id === mergeSourceId ? 'selected' : ''}" data-mid="${escapeHtml(o.id)}">
+        <span class="avatar sm" style="background:${av}">${escapeHtml(initialsOf(a.name))}</span>
+        <div class="body">
+          <div class="title">${escapeHtml(o.title)}</div>
+          <div class="sub">${escapeHtml(o.space || 'Other')} · ${escapeHtml(o.status || '')} · ${escapeHtml(a.name || 'Anonymous')}</div>
+        </div>
+      </button>`;
+  }).join('');
+  root.querySelectorAll('.merge-pick-item').forEach(b => {
+    b.addEventListener('click', () => {
+      mergeSourceId = b.dataset.mid;
+      renderMergePickList();
+      const next = document.getElementById('mergePickNext');
+      next.disabled = false;
+      next.style.opacity = '1';
+      next.style.pointerEvents = '';
+    });
+  });
+}
+
+function closeMergePicker() {
+  document.getElementById('mergePickModal').classList.remove('on');
+  mergeSourceId = null;
+}
+
+function openMergeConfirm() {
+  if (!mergeTargetId || !mergeSourceId) return;
+  const target = ideas.find(x => x.id === mergeTargetId);
+  const source = ideas.find(x => x.id === mergeSourceId);
+  if (!target || !source) { toast('Could not find ideas'); closeMergePicker(); return; }
+
+  // build the role-pick radios
+  const pick = document.getElementById('rolePick');
+  const a1 = target.author || {};
+  const a2 = source.author || {};
+  const av1 = a1.avatarColor || colorFor(a1.name || target.id);
+  const av2 = a2.avatarColor || colorFor(a2.name || source.id);
+  pick.innerHTML = `
+    <label class="${mergeMainIsHere ? 'checked' : ''}">
+      <input type="radio" name="mainAuthor" value="here" ${mergeMainIsHere ? 'checked' : ''} />
+      <div class="who">
+        <div class="avatar sm" style="background:${av1}">${escapeHtml(initialsOf(a1.name))}</div>
+        <div>
+          <div class="name">${escapeHtml(a1.name || 'Anonymous')}</div>
+          <div class="role-tag">From this idea</div>
+        </div>
+      </div>
+    </label>
+    <label class="${mergeMainIsHere ? '' : 'checked'}">
+      <input type="radio" name="mainAuthor" value="there" ${mergeMainIsHere ? '' : 'checked'} />
+      <div class="who">
+        <div class="avatar sm" style="background:${av2}">${escapeHtml(initialsOf(a2.name))}</div>
+        <div>
+          <div class="name">${escapeHtml(a2.name || 'Anonymous')}</div>
+          <div class="role-tag">From the merged-in idea</div>
+        </div>
+      </div>
+    </label>`;
+  pick.querySelectorAll('input[name="mainAuthor"]').forEach(r => {
+    r.addEventListener('change', () => {
+      mergeMainIsHere = r.value === 'here';
+      pick.querySelectorAll('label').forEach((l, idx) => {
+        l.classList.toggle('checked', (idx === 0) === mergeMainIsHere);
+      });
+    });
+  });
+
+  closeMergePicker();
+  document.getElementById('mergeConfirmModal').classList.add('on');
+}
+
+function closeMergeConfirm() {
+  document.getElementById('mergeConfirmModal').classList.remove('on');
+}
+
+function executeMerge() {
+  const target = ideas.find(x => x.id === mergeTargetId);
+  const source = ideas.find(x => x.id === mergeSourceId);
+  if (!target || !source) { toast('Could not find ideas'); closeMergeConfirm(); return; }
+
+  // Pick main author + co-author based on the toggle
+  const mainAuthor   = mergeMainIsHere ? target.author : source.author;
+  const coAuthor     = mergeMainIsHere ? source.author : target.author;
+  const keepTitle    = mergeMainIsHere ? target.title  : source.title;
+  const keepStatus   = mergeMainIsHere ? target.status : source.status;
+  const keepSpace    = mergeMainIsHere ? target.space  : source.space;
+
+  // Combine text fields with a divider
+  function combine(a, b) {
+    if (!a && !b) return '';
+    if (!a) return b;
+    if (!b) return a;
+    return a + '\n\n— Merged from the other idea —\n' + b;
+  }
+
+  // Dedupe collaborators by lowercased name
+  const seen = new Set();
+  const collabs = [];
+  [...(target.collaborators || []), ...(source.collaborators || [])].forEach(c => {
+    const key = (c.name || '').toLowerCase();
+    if (key && !seen.has(key)) { seen.add(key); collabs.push(c); }
+  });
+  // Strip the new author + co-author from collaborators (they have their own slots)
+  const authorKey = (mainAuthor?.name || '').toLowerCase();
+  const coKey     = (coAuthor?.name   || '').toLowerCase();
+  const cleanCollabs = collabs.filter(c => {
+    const k = (c.name || '').toLowerCase();
+    return k && k !== authorKey && k !== coKey;
+  });
+
+  // Combine attachments
+  const attachments = [...(target.attachments || []), ...(source.attachments || [])];
+
+  // Mutate target in place
+  target.title         = keepTitle;
+  target.problem       = combine(target.problem,  source.problem);
+  target.proposal      = combine(target.proposal, source.proposal);
+  target.measure       = combine(target.measure,  source.measure);
+  target.space         = keepSpace;
+  target.status        = keepStatus;
+  target.author        = mainAuthor;
+  target.coAuthor      = coAuthor;
+  target.collaborators = cleanCollabs;
+  target.attachments   = attachments;
+  target.upvotes       = (target.upvotes || 0) + (source.upvotes || 0);
+  target.comments      = (target.comments || 0) + (source.comments || 0);
+  target.updatedAt     = new Date().toISOString();
+  target.mergedFrom    = [...(target.mergedFrom || []), source.id];
+
+  // Drop the source idea
+  const srcIdx = ideas.findIndex(x => x.id === source.id);
+  if (srcIdx >= 0) ideas.splice(srcIdx, 1);
+
+  saveToCache(ideas);
+  // Send the fully-merged target idea to the backend so the sheet
+  // writes one row and deletes the source row.
+  postRemote('merge', {
+    targetId:   target.id,
+    sourceId:   source.id,
+    mergedIdea: target,
+  });
+
+  toast('Ideas merged — co-author added');
+  closeMergeConfirm();
+  render();
+  openDetail(target.id);
+}
+
+/* Wire the merge modals (boot-time) */
+(function wireMergeModals() {
+  const pickModal    = document.getElementById('mergePickModal');
+  const confirmModal = document.getElementById('mergeConfirmModal');
+  if (!pickModal || !confirmModal) return;
+
+  document.getElementById('mergePickClose').addEventListener('click', closeMergePicker);
+  document.getElementById('mergePickCancel').addEventListener('click', closeMergePicker);
+  document.getElementById('mergePickNext').addEventListener('click', openMergeConfirm);
+  pickModal.addEventListener('click', (e) => { if (e.target === pickModal) closeMergePicker(); });
+
+  document.getElementById('mergeConfirmClose').addEventListener('click', closeMergeConfirm);
+  document.getElementById('mergeConfirmBack').addEventListener('click', () => {
+    closeMergeConfirm();
+    // re-open picker so admin can change selection
+    document.getElementById('mergePickModal').classList.add('on');
+  });
+  document.getElementById('mergeConfirmSubmit').addEventListener('click', executeMerge);
+  confirmModal.addEventListener('click', (e) => { if (e.target === confirmModal) closeMergeConfirm(); });
+})();
 
 function initialsOf(name) {
   if (!name) return '??';
@@ -1392,14 +1897,8 @@ async function postRemote(action, payload) {
 async function loadIdeas() {
   // 1) hydrate from cache (fast)
   const cached = loadFromCache();
-  if (cached) {
-    ideas = cached;
-    render();
-  } else {
-    ideas = SEED.slice();
-    saveToCache(ideas);
-    render();
-  }
+  ideas = cached || SEED.slice();
+  render();
   // 2) try remote refresh (slow)
   const remote = await fetchRemote();
   if (remote) {
@@ -1427,7 +1926,6 @@ function getVisibleIdeas() {
   if (currentFilter !== 'all' && currentTab === 'all') {
     const map = {
       open:    'Open for collab',
-      coauth:  'Needs co-authors',
       review:  'In review',
       adopted: 'Adopted',
     };
@@ -1503,9 +2001,34 @@ function render() {
 }
 
 function bylineSub(author, createdAt) {
-  const role = (author?.role || '').trim();
-  const left = role ? role.toUpperCase() : 'CONTRIBUTOR';
-  return left + ' · ' + (timeAgo(createdAt) || 'just now').toUpperCase();
+  return (timeAgo(createdAt) || 'just now').toUpperCase();
+}
+
+/* Render the author block (avatar stack + name(s) + time) for a card row.
+   Used in spotlight cards and idea-row list. Pass size 'sm' for compact. */
+function renderByline(idea, size) {
+  const a = idea.author || {};
+  const co = idea.coAuthor;
+  const av  = a.avatarColor  || colorFor(a.name  || idea.id);
+  const cav = co ? (co.avatarColor || colorFor(co.name || idea.id + '-co')) : null;
+  const cls = size === 'sm' ? 'sm' : '';
+  const stack = co
+    ? `<span class="avatar-stack">
+         <span class="avatar ${cls}" style="background:${av}">${escapeHtml(initialsOf(a.name))}</span>
+         <span class="avatar ${cls}" style="background:${cav}">${escapeHtml(initialsOf(co.name))}</span>
+       </span>`
+    : `<span class="avatar ${cls}" style="background:${av}">${escapeHtml(initialsOf(a.name))}</span>`;
+  const name = co
+    ? `${escapeHtml(a.name || 'Anonymous')} <span style="color:var(--muted); font-weight:500;">&amp;</span> ${escapeHtml(co.name)}`
+    : escapeHtml(a.name || 'Anonymous');
+  return `
+    <div class="author">
+      ${stack}
+      <div class="who">
+        <div class="name">${name}</div>
+        <div class="sub">${escapeHtml(bylineSub(a, idea.createdAt))}</div>
+      </div>
+    </div>`;
 }
 
 function renderSpotlight() {
@@ -1536,15 +2059,9 @@ function renderSpotlight() {
         </button>
       </div>
       <h3>${escapeHtml(i.title)}</h3>
-      <div class="desc">${escapeHtml((i.problem || '').slice(0, 180))}</div>
+      <div class="desc">${escapeHtml((i.proposal || i.problem || '').slice(0, 180))}</div>
       <div class="card-foot">
-        <div class="author">
-          <div class="avatar" style="background:${av}">${escapeHtml(initialsOf(a.name))}</div>
-          <div class="who">
-            <div class="name">${escapeHtml(a.name || 'Anonymous')}</div>
-            <div class="sub">${escapeHtml(bylineSub(a, i.createdAt))}</div>
-          </div>
-        </div>
+        ${renderByline(i, '')}
         <div class="spacer"></div>
         <div class="upvote">↑ ${i.upvotes || 0}</div>
       </div>
@@ -1598,15 +2115,9 @@ function renderList() {
           </button>
         </div>
         <h4>${escapeHtml(i.title)}</h4>
-        <p class="desc">${escapeHtml((i.problem || '').slice(0, 220))}</p>
+        <p class="desc">${escapeHtml((i.proposal || i.problem || '').slice(0, 220))}</p>
         <div class="row-foot">
-          <div class="author">
-            <div class="avatar sm" style="background:${av}">${escapeHtml(initialsOf(a.name))}</div>
-            <div class="who">
-              <div class="name">${escapeHtml(a.name || 'Anonymous')}</div>
-              <div class="sub">${escapeHtml(bylineSub(a, i.createdAt))}</div>
-            </div>
-          </div>
+          ${renderByline(i, 'sm')}
           <div class="row-stats">
             <button class="stat upvote-btn ${isUp ? 'upvoted' : ''}" data-id="${escapeHtml(i.id)}">
               <svg viewBox="0 0 24 24"><path d="M12 19V5M5 12l7-7 7 7"/></svg>
@@ -1684,11 +2195,7 @@ function openDetail(id) {
   document.getElementById('detailProposal').textContent = i.proposal || '—';
   document.getElementById('detailMeasure').textContent  = i.measure  || '—';
 
-  const avEl = document.getElementById('detailAvatar');
-  avEl.textContent = initialsOf(a.name);
-  avEl.style.background = av;
-  document.getElementById('detailAuthor').textContent = a.name || 'Anonymous';
-  document.getElementById('detailWhen').textContent   = bylineSub(a, i.createdAt);
+  document.getElementById('detailAuthorBlock').innerHTML = renderByline(i, 'sm');
 
   // hook up the request-collab button inside the modal
   const reqBtn = document.getElementById('detailReqCollab');
@@ -1698,6 +2205,42 @@ function openDetail(id) {
       requestCollab(i.id);
       openDetail(i.id);
     });
+  }
+
+  // collaborators section — exclude the author + co-author (they have their own slot)
+  const collabSec  = document.getElementById('detailCollabSection');
+  const collabList = document.getElementById('detailCollabList');
+  const authorName  = (i.author?.name   || '').trim().toLowerCase();
+  const coAuthName  = (i.coAuthor?.name || '').trim().toLowerCase();
+  const rawCollabs  = Array.isArray(i.collaborators) ? i.collaborators : [];
+  const collabs = rawCollabs.filter(c => {
+    const n = (c.name || '').trim().toLowerCase();
+    return n && n !== authorName && n !== coAuthName;
+  });
+  if (collabs.length) {
+    collabSec.style.display = '';
+    collabList.innerHTML = collabs.map(c => {
+      const cav = c.avatarColor || colorFor(c.name || '');
+      return `<span class="collab-chip">
+        <span class="avatar" style="background:${cav}">${escapeHtml(initialsOf(c.name))}</span>
+        <span>${escapeHtml(c.name || 'Anonymous')}</span>
+      </span>`;
+    }).join('');
+  } else {
+    collabSec.style.display = 'none';
+    collabList.innerHTML = '';
+  }
+
+  // attachments section
+  const attSec  = document.getElementById('detailAttachSection');
+  const attList = document.getElementById('detailAttachList');
+  const atts = Array.isArray(i.attachments) ? i.attachments : [];
+  if (atts.length) {
+    attSec.style.display = '';
+    attList.innerHTML = atts.map(a => renderAttachmentItem(a, false)).join('');
+  } else {
+    attSec.style.display = 'none';
+    attList.innerHTML = '';
   }
   document.getElementById('detailUpvoteCount').textContent = i.upvotes || 0;
 
@@ -1728,6 +2271,12 @@ document.getElementById('detailUpvote').addEventListener('click', () => {
   // re-render modal counts
   openDetail(openIdeaId);
 });
+document.getElementById('detailMergeBtn').addEventListener('click', () => {
+  if (!openIdeaId) return;
+  if (!isAdmin())  return;
+  openMergePicker(openIdeaId);
+});
+
 document.getElementById('detailStatus').addEventListener('change', (e) => {
   if (!openIdeaId) return;
   const idea = ideas.find(i => i.id === openIdeaId);
@@ -1789,28 +2338,27 @@ document.addEventListener('keydown', (e) => {
     e.preventDefault();
     document.getElementById('searchInput').focus();
   }
-  if (e.key === 'Escape') closeDetail();
+  if (e.key === 'Escape') {
+    if (document.getElementById('mergeConfirmModal').classList.contains('on'))      closeMergeConfirm();
+    else if (document.getElementById('mergePickModal').classList.contains('on'))    closeMergePicker();
+    else if (document.getElementById('collabModal').classList.contains('on'))       closeCollabModal();
+    else                                                                            closeDetail();
+  }
 });
 
 /* ============================================================
    Post form
    ============================================================ */
-function getUserRole() {
-  try { return localStorage.getItem('ideas.userRole') || ''; } catch (_) { return ''; }
-}
-function setUserRole(r) {
-  try { localStorage.setItem('ideas.userRole', r); } catch (_) {}
-}
-
 function openPostForm() {
-  // prefill name + role if known
+  // prefill name if known
   const n = getUserName();
-  const r = getUserRole();
   document.getElementById('fName').value = n;
-  document.getElementById('fRole').value = r;
   document.getElementById('formAuthorName').textContent  = n || 'You';
   document.getElementById('formAuthorAvatar').textContent = initialsOf(n || 'You');
   document.getElementById('formAuthorAvatar').style.background = colorFor(n || 'You');
+  // reset pending attachments + render the (empty) attachments UI
+  pendingAttachments = [];
+  renderPendingAttachments();
   // load draft if any
   try {
     const draft = JSON.parse(localStorage.getItem(DRAFT_KEY) || 'null');
@@ -1819,6 +2367,10 @@ function openPostForm() {
       document.getElementById('fProblem').value  = draft.problem  || '';
       document.getElementById('fProposal').value = draft.proposal || '';
       document.getElementById('fMeasure').value  = draft.measure  || '';
+      if (Array.isArray(draft.attachments)) {
+        pendingAttachments = draft.attachments.slice();
+        renderPendingAttachments();
+      }
       if (draft.space)  selectChip('spaceGroup',  draft.space);
       if (draft.status) selectChip('statusGroup', draft.status);
     }
@@ -1847,40 +2399,189 @@ document.querySelectorAll('#statusGroup .chip').forEach(c => {
   });
 });
 
-['fTitle','fProblem','fProposal','fMeasure','fName','fRole'].forEach(id => {
+['fTitle','fProblem','fProposal','fMeasure','fName'].forEach(id => {
   document.getElementById(id).addEventListener('input', updatePreview);
 });
+
+/* ============================================================
+   Attachments (form-side pending list)
+   ============================================================ */
+let pendingAttachments = [];
+const MAX_FILE_BYTES = 4 * 1024 * 1024; // 4 MB per file — localStorage safety
+
+function renderAttachmentItem(a, editable) {
+  const isImage = a.type === 'file' && (a.mime || '').startsWith('image/');
+  const isLink  = a.type === 'link';
+
+  /* Thumbnail logic:
+     - link        → link icon
+     - drive image → use drive's thumbnail endpoint (a.driveId)
+     - data: image → inline preview from the data URL
+     - other file  → generic doc icon */
+  let thumb;
+  if (isLink) {
+    thumb = '<svg viewBox="0 0 24 24"><path d="M10 13a5 5 0 0 0 7.07 0l3-3a5 5 0 0 0-7.07-7.07l-1.5 1.5M14 11a5 5 0 0 0-7.07 0l-3 3a5 5 0 0 0 7.07 7.07l1.5-1.5"/></svg>';
+  } else if (isImage && a.driveId) {
+    thumb = `<img src="https://drive.google.com/thumbnail?id=${escapeHtml(a.driveId)}&sz=w120" alt="" onerror="this.style.display='none'" />`;
+  } else if (isImage && (a.url || '').startsWith('data:')) {
+    thumb = `<img src="${escapeHtml(a.url)}" alt="" />`;
+  } else {
+    thumb = '<svg viewBox="0 0 24 24"><path d="M13 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V9z"/><path d="M13 2v7h7"/></svg>';
+  }
+
+  /* Sub-label */
+  let sub;
+  if (isLink) {
+    sub = 'External link';
+  } else if (a.driveId) {
+    sub = 'Google Drive · ' + (a.mime || 'file');
+  } else if (a.size) {
+    sub = Math.round(a.size / 1024) + ' KB · ' + (a.mime || 'file');
+  } else {
+    sub = a.mime || 'file';
+  }
+
+  /* Open semantics:
+     - editable (in form): no link, just a div with remove button
+     - non-editable (in modal): link to the specific file's URL in a
+       new tab. For Drive files that's the file's view URL.
+     - link attachments always behave as anchors. */
+  const href   = a.url || '#';
+  const target = '_blank';
+  const tag    = editable ? 'div' : 'a';
+  const attrs  = (tag === 'a')
+    ? `href="${escapeHtml(href)}" target="${target}" rel="noopener"`
+    : '';
+
+  return `
+    <${tag} class="attach-item" ${attrs} data-attach-id="${escapeHtml(a.id || '')}">
+      <span class="thumb">${thumb}</span>
+      <div class="body">
+        <div class="name">${escapeHtml(a.name || 'Untitled')}</div>
+        <div class="sub">${escapeHtml(sub)}</div>
+      </div>
+      ${editable ? `<button type="button" class="remove" data-attach-remove="${escapeHtml(a.id || '')}" title="Remove"><svg viewBox="0 0 24 24"><path d="M18 6L6 18M6 6l12 12"/></svg></button>` : ''}
+    </${tag}>`;
+}
+
+function renderPendingAttachments() {
+  const root = document.getElementById('pendingAttachList');
+  if (!root) return;
+  root.innerHTML = pendingAttachments.map(a => renderAttachmentItem(a, true)).join('');
+  root.querySelectorAll('[data-attach-remove]').forEach(btn => {
+    btn.addEventListener('click', (e) => {
+      e.preventDefault(); e.stopPropagation();
+      const id = btn.dataset.attachRemove;
+      pendingAttachments = pendingAttachments.filter(a => a.id !== id);
+      renderPendingAttachments();
+    });
+  });
+}
+
+function attachId() {
+  return 'att-' + Date.now() + '-' + Math.random().toString(36).slice(2, 7);
+}
+
+function addFileAttachment(file) {
+  if (file.size > MAX_FILE_BYTES) {
+    toast(file.name + ' is too large (max 4 MB)');
+    return;
+  }
+  const reader = new FileReader();
+  reader.onload = (e) => {
+    pendingAttachments.push({
+      id:   attachId(),
+      type: 'file',
+      name: file.name,
+      mime: file.type || 'application/octet-stream',
+      size: file.size,
+      url:  e.target.result,  // data URL
+    });
+    renderPendingAttachments();
+  };
+  reader.onerror = () => toast('Couldn\'t read ' + file.name);
+  reader.readAsDataURL(file);
+}
+
+function addLinkAttachment(url) {
+  const u = url.trim();
+  if (!u) return;
+  // crude URL validation
+  let normalized = u;
+  if (!/^https?:\/\//i.test(u)) normalized = 'https://' + u;
+  let host = u;
+  try { host = new URL(normalized).hostname; } catch (_) {}
+  pendingAttachments.push({
+    id:   attachId(),
+    type: 'link',
+    name: u,
+    url:  normalized,
+    host,
+  });
+  renderPendingAttachments();
+}
+
+/* attachment input wiring (runs once at boot) */
+(function wireAttachInputs() {
+  const fileInput = document.getElementById('attachFile');
+  const dropZone  = document.getElementById('attachDrop');
+  const linkInput = document.getElementById('attachLink');
+  const linkBtn   = document.getElementById('attachLinkBtn');
+  if (!fileInput || !dropZone || !linkInput || !linkBtn) return;
+
+  fileInput.addEventListener('change', (e) => {
+    Array.from(e.target.files || []).forEach(addFileAttachment);
+    fileInput.value = '';
+  });
+  ['dragenter','dragover'].forEach(ev => dropZone.addEventListener(ev, (e) => {
+    e.preventDefault(); dropZone.classList.add('dragover');
+  }));
+  ['dragleave','drop'].forEach(ev => dropZone.addEventListener(ev, (e) => {
+    e.preventDefault(); dropZone.classList.remove('dragover');
+  }));
+  dropZone.addEventListener('drop', (e) => {
+    Array.from(e.dataTransfer.files || []).forEach(addFileAttachment);
+  });
+
+  linkBtn.addEventListener('click', () => {
+    addLinkAttachment(linkInput.value);
+    linkInput.value = '';
+    linkInput.focus();
+  });
+  linkInput.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter') { e.preventDefault(); linkBtn.click(); }
+  });
+})();
 
 function readForm() {
   const space  = document.querySelector('#spaceGroup .chip.selected')?.dataset.space  || 'Internal';
   const status = document.querySelector('#statusGroup .chip.selected')?.dataset.status || 'Open for collab';
   return {
     name:     document.getElementById('fName').value.trim(),
-    role:     document.getElementById('fRole').value.trim(),
     title:    document.getElementById('fTitle').value.trim(),
     problem:  document.getElementById('fProblem').value.trim(),
     proposal: document.getElementById('fProposal').value.trim(),
     measure:  document.getElementById('fMeasure').value.trim(),
     space,
     status,
+    attachments: pendingAttachments.slice(),
   };
 }
 
 function updatePreview() {
   const f = readForm();
   document.getElementById('prevTitle').textContent = f.title || 'Your idea title';
-  document.getElementById('prevDesc').textContent  = (f.problem || 'A short summary of what this is about.').slice(0, 180);
+  document.getElementById('prevDesc').textContent  = (f.proposal || f.problem || 'A short summary of what this is about.').slice(0, 180);
   document.getElementById('prevSpace').textContent = f.space;
   document.getElementById('prevStatus').className  = 'pill ' + statusToPillClass(f.status);
   document.getElementById('prevStatus').innerHTML  = '<span class="dot"></span>' + f.status;
   const nm = f.name || 'You';
-  const rl = f.role || 'Contributor';
   document.getElementById('prevAvatar').textContent = initialsOf(nm);
   document.getElementById('prevAvatar').style.background = colorFor(nm);
   document.getElementById('prevName').textContent = nm;
   // also update the author-card on the form itself
   document.getElementById('formAuthorName').textContent  = nm;
-  document.getElementById('formAuthorRole').textContent  = rl;
+  document.getElementById('formAuthorRole').textContent  = f.name ? 'Posting in ' + f.space : 'Set your name below ↓';
   document.getElementById('formAuthorAvatar').textContent = initialsOf(nm);
   document.getElementById('formAuthorAvatar').style.background = colorFor(nm);
 }
@@ -1891,7 +2592,52 @@ function saveDraft() {
   toast('Draft saved');
 }
 
-function postIdea(asPreview) {
+/* Upload a single attachment's data URL to Drive via the Apps Script
+   backend. Returns a new attachment with the Drive URL + driveId, or
+   the original attachment if no APPS_SCRIPT_URL is configured / the
+   upload failed (so the post never gets stuck). */
+async function uploadOneToDrive(att) {
+  if (!APPS_SCRIPT_URL)                       return att;
+  if (att.type !== 'file')                    return att;
+  if (!att.url || !att.url.startsWith('data:')) return att;  // already uploaded
+  const base64 = att.url.split(',', 2)[1];
+  try {
+    const r = await fetch(APPS_SCRIPT_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+      body: JSON.stringify({
+        action: 'uploadFile',
+        name:   att.name,
+        mime:   att.mime,
+        data:   base64,
+      }),
+    });
+    const result = await r.json();
+    if (result && result.ok && result.url) {
+      return {
+        ...att,
+        url:     result.url,
+        driveId: result.id,
+        mime:    result.mime || att.mime,
+        size:    result.size || att.size,
+      };
+    }
+  } catch (e) {
+    console.warn('Drive upload failed for', att.name, e);
+  }
+  return att;  // fall through — local-only data URL kept
+}
+
+async function uploadAllAttachments(list) {
+  if (!APPS_SCRIPT_URL) return list;
+  const out = [];
+  for (const a of (list || [])) {
+    out.push(await uploadOneToDrive(a));
+  }
+  return out;
+}
+
+async function postIdea(asPreview) {
   const f = readForm();
   if (!f.name) {
     toast('Add your name first');
@@ -1904,7 +2650,12 @@ function postIdea(asPreview) {
     return;
   }
   setUserName(f.name);
-  setUserRole(f.role);
+
+  // Upload any data-URL attachments to Drive first (if backend wired up)
+  if (APPS_SCRIPT_URL && (f.attachments || []).some(a => a.type === 'file' && (a.url || '').startsWith('data:'))) {
+    toast('Uploading attachments…');
+  }
+  f.attachments = await uploadAllAttachments(f.attachments);
 
   const openCollab = document.getElementById('fOpenCollab').checked;
   const finalStatus = openCollab && f.status === 'Draft' ? 'Open for collab' : f.status;
@@ -1919,10 +2670,11 @@ function postIdea(asPreview) {
     status:   finalStatus,
     author: {
       name:        f.name,
-      role:        f.role,
       initials:    initialsOf(f.name),
       avatarColor: colorFor(f.name),
     },
+    collaborators: [],
+    attachments:   f.attachments || [],
     upvotes: 0,
     comments: 0,
     createdAt: new Date().toISOString(),
@@ -1931,8 +2683,9 @@ function postIdea(asPreview) {
   ideas.unshift(newIdea);
   saveToCache(ideas);
 
-  // clear draft
+  // clear draft + pending attachments
   try { localStorage.removeItem(DRAFT_KEY); } catch (_) {}
+  pendingAttachments = [];
 
   // remote
   postRemote('create', { idea: newIdea });
