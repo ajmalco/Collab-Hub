@@ -503,7 +503,23 @@
      - If source = 'github' and a URL is configured → fetch + render
      - If source = 'upload' and content is cached → render cached
      - Otherwise → render bundled default
+
+   Admin-gating the header strip:
+     - The wrapper's header (file info + Sync + Configure) is only useful
+       to admins. Non-admin viewers see the design system full-bleed.
+     - PROJEX shell sets `projex.admin = '1'` in localStorage on sign-in.
+       Same origin (GitHub Pages) → same localStorage, so we can read it
+       directly from here. If absent, hide the header.
    ───────────────────────────────────────────────────────────────────── */
+
+(function gateHeader() {
+  let isAdmin = false;
+  try { isAdmin = localStorage.getItem('projex.admin') === '1'; } catch (_) {}
+  if (!isAdmin) {
+    const h = document.querySelector('header');
+    if (h) h.style.display = 'none';
+  }
+})();
 
 const LS = {
   source:         'uig.source',          // 'github' | 'upload' | 'default'
