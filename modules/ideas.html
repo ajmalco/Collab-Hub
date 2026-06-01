@@ -951,6 +951,345 @@
     margin-right: 8px;
   }
 
+  /* ============================================================
+     DETAIL VIEW (full-page idea view)
+     ============================================================ */
+  .detail-layout {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) 320px;
+    gap: 36px;
+    align-items: flex-start;
+  }
+  @media (max-width: 980px) {
+    .detail-layout { grid-template-columns: 1fr; }
+  }
+
+  .detail-main { min-width: 0; }
+  .detail-top { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; margin: 4px 0 16px; }
+  .detail-main h1 {
+    margin: 0 0 10px;
+    font-size: 30px;
+    font-weight: 700;
+    color: var(--navy);
+    letter-spacing: -0.02em;
+    line-height: 1.2;
+  }
+  .detail-main > .lede {
+    margin: 0 0 24px;
+    color: var(--ink-2);
+    font-size: 14px;
+    line-height: 1.55;
+    max-width: 640px;
+  }
+
+  /* author hero — peach in screenshot, navy soft in our system */
+  .author-hero {
+    display: flex;
+    align-items: center;
+    gap: 22px;
+    background: linear-gradient(180deg, #E8EFF8 0%, #CFDCEC 100%);
+    border-radius: 14px;
+    padding: 18px 22px;
+    margin: 0 0 28px;
+    flex-wrap: wrap;
+  }
+  .author-hero .who {
+    display: flex; align-items: center; gap: 14px;
+    min-width: 180px;
+  }
+  .author-hero .author-avatar { position: relative; }
+  .author-hero .author-avatar .avatar { width: 46px; height: 46px; font-size: 13px; }
+  .author-hero .author-avatar .star {
+    position: absolute;
+    right: -2px; bottom: -2px;
+    width: 16px; height: 16px;
+    border-radius: 50%;
+    background: var(--navy);
+    color: #fff;
+    display: grid; place-items: center;
+    font-size: 9px;
+    border: 2px solid #E8EFF8;
+  }
+  .author-hero .author-label {
+    display: inline-flex; align-items: center; gap: 4px;
+    background: var(--navy);
+    color: #fff;
+    padding: 3px 9px;
+    border-radius: 999px;
+    font-size: 9px;
+    font-weight: 700;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    margin-bottom: 5px;
+  }
+  .author-hero .author-label::before { content: '★'; font-size: 9px; }
+  .author-hero .author-name {
+    font-size: 16px;
+    font-weight: 600;
+    color: var(--navy);
+    letter-spacing: -0.01em;
+  }
+  .author-hero .author-when {
+    font-size: 11px;
+    color: var(--ink-2);
+    margin-top: 1px;
+  }
+  .author-hero .vsep {
+    width: 1px;
+    align-self: stretch;
+    background: rgba(13,36,64,0.12);
+    margin: 4px 6px;
+  }
+  .author-hero .collab-block {
+    flex: 1;
+    min-width: 160px;
+    display: flex; flex-direction: column;
+    gap: 4px;
+  }
+  .author-hero .collab-block .label {
+    font-size: 10px;
+    letter-spacing: 1.2px;
+    text-transform: uppercase;
+    color: var(--ink-2);
+    font-weight: 600;
+  }
+  .author-hero .collab-block .names {
+    font-size: 12.5px;
+    color: var(--ink);
+    font-weight: 500;
+  }
+  .author-hero .collab-block .avatar-row {
+    display: flex; align-items: center; gap: 0;
+    margin-bottom: 2px;
+  }
+  .author-hero .collab-block .avatar-row .avatar {
+    width: 26px; height: 26px;
+    font-size: 9px;
+    border: 2px solid #E8EFF8;
+    margin-left: -8px;
+  }
+  .author-hero .collab-block .avatar-row .avatar:first-child { margin-left: 0; }
+  .author-hero .req-btn {
+    display: inline-flex; align-items: center; gap: 8px;
+    padding: 11px 18px;
+    background: var(--navy-2);
+    color: #fff;
+    border: 0;
+    border-radius: 10px;
+    font: inherit;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background 0.15s;
+  }
+  .author-hero .req-btn:hover { background: var(--navy-deep); }
+  .author-hero .req-btn:disabled,
+  .author-hero .req-btn.sent {
+    background: var(--mint);
+    cursor: default;
+  }
+  .author-hero .req-btn svg { width: 14px; height: 14px; stroke: currentColor; fill: none; stroke-width: 2.2; }
+
+  /* section blocks */
+  .detail-section {
+    margin: 0 0 26px;
+  }
+  .detail-section h3 {
+    font-size: 10px;
+    letter-spacing: 1.4px;
+    text-transform: uppercase;
+    color: var(--navy-2);
+    font-weight: 600;
+    margin: 0 0 8px;
+  }
+  .detail-section h3 .hint {
+    color: var(--muted);
+    font-weight: 500;
+    letter-spacing: 0;
+    text-transform: none;
+    font-size: 11px;
+    margin-left: 8px;
+  }
+  .detail-section .body {
+    font-size: 14px;
+    color: var(--ink);
+    line-height: 1.65;
+    white-space: pre-wrap;
+  }
+
+  /* discussion section */
+  .discussion-head {
+    display: inline-flex; align-items: center; gap: 8px;
+    font-size: 11px;
+    letter-spacing: 1.6px;
+    text-transform: uppercase;
+    color: var(--ink-2);
+    font-weight: 600;
+    margin: 12px 0 16px;
+  }
+  .discussion-head svg { width: 14px; height: 14px; stroke: var(--navy-2); fill: none; stroke-width: 2; }
+  .comment {
+    background: #fff;
+    border-radius: 12px;
+    padding: 16px 18px;
+    box-shadow: var(--shadow-sm);
+    margin-bottom: 10px;
+  }
+  .comment .top { display: flex; align-items: baseline; gap: 8px; margin-bottom: 6px; }
+  .comment .top .name { font-size: 13.5px; font-weight: 600; color: var(--navy); }
+  .comment .top .when { font-size: 11px; color: var(--muted); }
+  .comment .body  { font-size: 13.5px; color: var(--ink); line-height: 1.55; margin: 0 0 8px; }
+  .comment .actions { display: flex; align-items: center; gap: 16px; font-size: 12px; color: var(--ink-2); }
+  .comment .actions button { background: 0; border: 0; color: inherit; font: inherit; cursor: pointer; padding: 0; }
+  .comment .actions button:hover { color: var(--navy); }
+  .comment-row { display: flex; align-items: flex-start; gap: 12px; }
+  .comment-row .avatar { flex-shrink: 0; }
+
+  .discussion-empty {
+    padding: 18px;
+    text-align: center;
+    color: var(--ink-2);
+    font-size: 13px;
+    background: var(--page);
+    border-radius: 12px;
+  }
+
+  /* RIGHT SIDEBAR CARDS */
+  .detail-side {
+    display: flex; flex-direction: column;
+    gap: 16px;
+    position: sticky; top: 24px;
+  }
+  .side-card {
+    background: #fff;
+    border-radius: 14px;
+    padding: 18px 20px;
+    box-shadow: var(--shadow-sm);
+  }
+  .side-card h4 {
+    margin: 0 0 14px;
+    font-size: 10px;
+    letter-spacing: 1.4px;
+    text-transform: uppercase;
+    color: var(--ink-2);
+    font-weight: 600;
+  }
+  .side-card .visible-to {
+    font-size: 11px;
+    color: var(--muted);
+    margin: -10px 0 14px;
+  }
+
+  /* stats card */
+  .stats-card .stat-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    text-align: center;
+    margin-bottom: 16px;
+  }
+  .stats-card .stat-row .n {
+    font-size: 24px;
+    font-weight: 700;
+    color: var(--navy-2);
+    line-height: 1;
+  }
+  .stats-card .stat-row .lbl {
+    font-size: 10px;
+    letter-spacing: 1.1px;
+    text-transform: uppercase;
+    color: var(--ink-2);
+    font-weight: 600;
+    margin-top: 4px;
+  }
+  .stats-card .upvote-big {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    width: 100%;
+    padding: 10px;
+    border: 1.5px solid var(--navy-2);
+    background: transparent;
+    color: var(--navy-2);
+    border-radius: 10px;
+    font: inherit;
+    font-weight: 600;
+    font-size: 13px;
+    cursor: pointer;
+    transition: background 0.15s, color 0.15s;
+  }
+  .stats-card .upvote-big:hover { background: var(--navy-2); color: #fff; }
+  .stats-card .upvote-big.upvoted {
+    background: var(--navy-2);
+    color: #fff;
+  }
+  .stats-card .upvote-big svg { width: 14px; height: 14px; stroke: currentColor; fill: none; stroke-width: 2.4; }
+
+  /* requests-to-collab card */
+  .req-list { display: flex; flex-direction: column; gap: 16px; }
+  .req-item .req-head {
+    display: flex; align-items: flex-start; gap: 10px;
+    margin-bottom: 6px;
+  }
+  .req-item .who {
+    flex: 1; min-width: 0;
+    display: flex; flex-direction: column;
+  }
+  .req-item .name { font-size: 13px; font-weight: 600; color: var(--navy); line-height: 1.2; }
+  .req-item .when { font-size: 10px; letter-spacing: 0.6px; text-transform: uppercase; color: var(--muted); font-weight: 600; margin-top: 2px; }
+  .req-item .quote {
+    font-size: 12px;
+    color: var(--ink-2);
+    line-height: 1.55;
+    margin: 0 0 8px;
+    padding: 8px 10px;
+    background: var(--page);
+    border-radius: 8px;
+  }
+  .req-item .row {
+    display: flex; gap: 6px;
+  }
+  .req-btn-sm {
+    padding: 6px 12px;
+    border-radius: 7px;
+    border: 0;
+    font: inherit;
+    font-size: 11px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background 0.15s, color 0.15s;
+  }
+  .req-btn-sm.accept { background: var(--navy-2); color: #fff; }
+  .req-btn-sm.accept:hover { background: var(--navy-deep); }
+  .req-btn-sm.decline { background: transparent; color: var(--ink-2); border: 1px solid var(--line); }
+  .req-btn-sm.decline:hover { background: var(--page); color: var(--ink); }
+
+  /* activity feed */
+  .activity-feed { display: flex; flex-direction: column; gap: 10px; }
+  .activity-item {
+    display: flex; align-items: flex-start; gap: 10px;
+    font-size: 12.5px;
+    color: var(--ink);
+  }
+  .activity-item .dot {
+    width: 8px; height: 8px;
+    border-radius: 50%;
+    background: var(--coral);
+    margin-top: 6px;
+    flex-shrink: 0;
+  }
+  .activity-item.joined .dot { background: var(--mint); }
+  .activity-item.asked  .dot { background: var(--amber); }
+  .activity-item.merge  .dot { background: var(--navy-2); }
+  .activity-item .body { flex: 1; min-width: 0; }
+  .activity-item .body b { color: var(--navy); font-weight: 600; }
+  .activity-item .when {
+    font-size: 11px;
+    color: var(--muted);
+    flex-shrink: 0;
+    margin-left: 8px;
+  }
+
   /* reusable small modal pieces (collab name, merge picker, merge confirm) */
   .modal.sm { max-width: 440px; }
   .modal.md { max-width: 560px; }
@@ -1348,61 +1687,91 @@
     </div>
   </section>
 
-</main>
+  <!-- =========================================================
+       DETAIL VIEW (full-page, replaces the modal)
+       ========================================================= -->
+  <section class="view" id="detailView">
+    <button class="back-link" onclick="showView('feed')">
+      <svg viewBox="0 0 24 24"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>
+      Back to Ideas
+    </button>
 
-<!-- ============================================================
-     IDEA DETAIL MODAL
-     ============================================================ -->
-<div class="modal-backdrop" id="detailModal">
-  <div class="modal" id="detailModalInner">
-    <button class="modal-close" onclick="closeDetail()"><svg viewBox="0 0 24 24"><path d="M18 6L6 18M6 6l12 12"/></svg></button>
-    <div class="meta" id="detailMeta"></div>
-    <h2 id="detailTitle">—</h2>
+    <div class="detail-layout">
+      <div class="detail-main">
+        <div class="detail-top" id="dvTop"></div>
+        <h1 id="dvTitle">—</h1>
+        <p class="lede" id="dvLede"></p>
 
-    <section>
-      <h6>The problem</h6>
-      <div class="body" id="detailProblem">—</div>
-    </section>
-    <section>
-      <h6>The proposal</h6>
-      <div class="body" id="detailProposal">—</div>
-    </section>
-    <section>
-      <h6>How we'll know it worked</h6>
-      <div class="body" id="detailMeasure">—</div>
-    </section>
-    <section id="detailAttachSection" style="display:none">
-      <h6>Attachments &amp; references</h6>
-      <div class="attach-list" id="detailAttachList"></div>
-    </section>
-    <section id="detailCollabSection" style="display:none">
-      <h6>Collaborators</h6>
-      <div class="collab-list" id="detailCollabList"></div>
-    </section>
+        <div class="author-hero" id="dvAuthorHero"></div>
 
-    <div class="modal-foot">
-      <div class="left" id="detailAuthorBlock"></div>
-      <button class="btn-ghost" id="detailUpvote">
-        <svg viewBox="0 0 24 24" style="width:14px;height:14px;stroke:currentColor;fill:none;stroke-width:2;"><path d="M12 19V5M5 12l7-7 7 7"/></svg>
-        <span id="detailUpvoteCount">0</span>
-      </button>
-      <span id="detailAdminControls" style="display:none">
-        <span class="admin-hint">Admin:</span>
-        <select class="status-select" id="detailStatus">
-          <option>Draft</option>
-          <option>Open for collab</option>
-          <option>Needs co-authors</option>
-          <option>In review</option>
-          <option>Adopted</option>
-        </select>
-        <button class="btn-ghost" id="detailMergeBtn" title="Merge another idea into this one" style="margin-left:6px;">
-          <svg viewBox="0 0 24 24" style="width:14px;height:14px;stroke:currentColor;fill:none;stroke-width:2;"><path d="M8 3L3 8l5 5M3 8h13a5 5 0 0 1 5 5v8M16 21l5-5-5-5"/></svg>
-          Merge in…
-        </button>
-      </span>
+        <div class="detail-section" id="dvProblemSec">
+          <h3>The problem</h3>
+          <div class="body" id="dvProblem">—</div>
+        </div>
+        <div class="detail-section" id="dvProposalSec">
+          <h3>The proposal</h3>
+          <div class="body" id="dvProposal">—</div>
+        </div>
+        <div class="detail-section" id="dvMeasureSec">
+          <h3>How we'll know it worked</h3>
+          <div class="body" id="dvMeasure">—</div>
+        </div>
+        <div class="detail-section" id="dvAttachSec" style="display:none">
+          <h3>Attachments &amp; references</h3>
+          <div class="attach-list" id="dvAttachList"></div>
+        </div>
+
+        <div class="discussion-head">
+          <svg viewBox="0 0 24 24"><path d="M21 11.5a8.4 8.4 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.4 8.4 0 0 1-3.8-.9L3 21l1.9-5.7a8.4 8.4 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.4 8.4 0 0 1 3.8-.9h.5a8.5 8.5 0 0 1 8 8v.5z"/></svg>
+          Discussion <span id="dvCommentCount" style="font-weight:500;color:var(--muted)">( 0 )</span>
+        </div>
+        <div id="dvComments"></div>
+
+        <!-- Admin controls — floated at the bottom of the main column -->
+        <div id="dvAdminControls" style="display:none; margin-top:30px; padding-top:20px; border-top:1px solid var(--line-2); align-items:center; gap:10px;">
+          <span class="admin-hint">Admin:</span>
+          <select class="status-select" id="dvStatus">
+            <option>Draft</option>
+            <option>Open for collab</option>
+            <option>Needs co-authors</option>
+            <option>In review</option>
+            <option>Adopted</option>
+          </select>
+          <button class="btn-ghost" id="dvMergeBtn">
+            <svg viewBox="0 0 24 24" style="width:14px;height:14px;stroke:currentColor;fill:none;stroke-width:2;"><path d="M8 3L3 8l5 5M3 8h13a5 5 0 0 1 5 5v8M16 21l5-5-5-5"/></svg>
+            Merge in…
+          </button>
+        </div>
+      </div>
+
+      <aside class="detail-side">
+        <div class="side-card stats-card">
+          <div class="stat-row">
+            <div><div class="n" id="dvUpvotes">0</div><div class="lbl">Upvotes</div></div>
+            <div><div class="n" id="dvCollabCount">0</div><div class="lbl">Collaborators</div></div>
+            <div><div class="n" id="dvComments2">0</div><div class="lbl">Comments</div></div>
+          </div>
+          <button class="upvote-big" id="dvUpvoteBtn">
+            <svg viewBox="0 0 24 24"><path d="M12 19V5M5 12l7-7 7 7"/></svg>
+            <span id="dvUpvoteLabel">Upvote this idea</span>
+          </button>
+        </div>
+
+        <div class="side-card" id="dvReqCard" style="display:none">
+          <h4>Requests to collab</h4>
+          <p class="visible-to" id="dvVisibleTo">Visible to the author only.</p>
+          <div class="req-list" id="dvReqList"></div>
+        </div>
+
+        <div class="side-card">
+          <h4>Activity</h4>
+          <div class="activity-feed" id="dvActivity"></div>
+        </div>
+      </aside>
     </div>
-  </div>
-</div>
+  </section>
+
+</main>
 
 <!-- =========================================================
      Collab request modal
@@ -1587,7 +1956,10 @@ function submitCollabRequest() {
       name,
       initials:    initialsOf(name),
       avatarColor: colorFor(name),
+      status:      'pending',
+      at:          new Date().toISOString(),
     });
+    logActivity(idea, 'asked', name);
     saveToCache(ideas);
   }
   postRemote('collabRequest', {
@@ -1596,9 +1968,11 @@ function submitCollabRequest() {
       name,
       initials:    initialsOf(name),
       avatarColor: colorFor(name),
+      status:      'pending',
+      at:          new Date().toISOString(),
     },
   });
-  toast('Collab request sent — you\'re listed as a collaborator');
+  toast('Collab request sent — the author will see your request');
   closeCollabModal();
   render();
   // re-open the detail modal if it was open so the user sees their name appear
@@ -1775,6 +2149,9 @@ function executeMerge() {
   target.comments      = (target.comments || 0) + (source.comments || 0);
   target.updatedAt     = new Date().toISOString();
   target.mergedFrom    = [...(target.mergedFrom || []), source.id];
+  // combine activity logs + log the merge event
+  target.activity      = [...(target.activity || []), ...(source.activity || [])];
+  logActivity(target, 'merge', coAuthor?.name || 'Someone', coAuthor?.name || '');
 
   // Drop the source idea
   const srcIdx = ideas.findIndex(x => x.id === source.id);
@@ -2172,69 +2549,161 @@ function toggleUpvote(id) {
 }
 
 /* ============================================================
-   Idea detail modal
+   Idea detail VIEW (full page, replaces the old modal)
    ============================================================ */
+
+/* ---- Activity log ---- */
+function logActivity(idea, type, who, extra) {
+  if (!Array.isArray(idea.activity)) idea.activity = [];
+  idea.activity.push({
+    type, who: who || '', at: new Date().toISOString(),
+    ...(extra ? { extra } : {}),
+  });
+}
+function activityLabel(ev) {
+  const who = `<b>${escapeHtml(ev.who || 'Someone')}</b>`;
+  switch (ev.type) {
+    case 'post':     return `${who} posted this idea`;
+    case 'asked':    return `${who} asked to collab`;
+    case 'joined':   return `${who} joined as collaborator`;
+    case 'declined': return `${who}'s request was declined`;
+    case 'status':   return `Status moved to <b>${escapeHtml(ev.extra || '')}</b>`;
+    case 'merge':    return `Merged with another idea — <b>${escapeHtml(ev.extra || '')}</b> joined as co-author`;
+    case 'upvote':   return `${who} upvoted`;
+    default:         return `${who} ${escapeHtml(ev.type)}`;
+  }
+}
+function activityCssClass(ev) {
+  if (ev.type === 'joined') return 'joined';
+  if (ev.type === 'asked')  return 'asked';
+  if (ev.type === 'merge')  return 'merge';
+  return '';
+}
+
+/* ---- Are we (by stored userName) the author of this idea? ---- */
+function isAuthorOf(idea) {
+  const me = (getUserName() || '').trim().toLowerCase();
+  if (!me) return false;
+  const a = (idea?.author?.name || '').trim().toLowerCase();
+  return a && a === me;
+}
+
+/* ---- Author hero (avatar + author block + collaborators + req btn) ---- */
+function renderAuthorHero(i, isReq) {
+  const a = i.author || {};
+  const av = a.avatarColor || colorFor(a.name || i.id);
+  const role = (a.role || '').trim();
+  const co = i.coAuthor;
+
+  let authorStack;
+  if (co) {
+    const cav = co.avatarColor || colorFor(co.name || (i.id + '-co'));
+    authorStack = `
+      <div class="author-avatar">
+        <span class="avatar-stack">
+          <span class="avatar" style="background:${av}">${escapeHtml(initialsOf(a.name))}</span>
+          <span class="avatar" style="background:${cav}">${escapeHtml(initialsOf(co.name))}</span>
+        </span>
+        <span class="star">★</span>
+      </div>`;
+  } else {
+    authorStack = `
+      <div class="author-avatar">
+        <span class="avatar" style="background:${av}">${escapeHtml(initialsOf(a.name))}</span>
+        <span class="star">★</span>
+      </div>`;
+  }
+  const authorNames = co
+    ? `${escapeHtml(a.name)} <span style="color:var(--muted);">&amp;</span> ${escapeHtml(co.name)}`
+    : escapeHtml(a.name || 'Anonymous');
+
+  /* Accepted collaborators only (legacy entries with no status default to accepted) */
+  const accepted = (i.collaborators || []).filter(c => (c.status || 'accepted') === 'accepted' &&
+    (c.name || '').toLowerCase() !== (a.name || '').toLowerCase() &&
+    (c.name || '').toLowerCase() !== (co?.name || '').toLowerCase());
+
+  let collabBlock = '';
+  if (accepted.length) {
+    const avatars = accepted.slice(0, 5).map(c => {
+      const cav = c.avatarColor || colorFor(c.name || '');
+      return `<span class="avatar" style="background:${cav}">${escapeHtml(initialsOf(c.name))}</span>`;
+    }).join('');
+    const names = formatNameList(accepted.map(c => (c.name || '').split(' ').slice(-1)[0]));
+    collabBlock = `
+      <div class="vsep"></div>
+      <div class="collab-block">
+        <div class="label">Collaborators (${accepted.length})</div>
+        <div class="avatar-row">${avatars}${accepted.length > 5 ? `<span class="avatar" style="background:var(--ink-2); color:#fff;">+${accepted.length - 5}</span>` : ''}</div>
+        <div class="names">${escapeHtml(names)}</div>
+      </div>`;
+  }
+
+  const reqBtnHtml = isAuthorOf(i)
+    ? ''
+    : isReq
+      ? `<button class="req-btn sent" id="dvHeroReqBtn" disabled><svg viewBox="0 0 24 24"><path d="M5 12l4 4L19 6"/></svg>Requested</button>`
+      : `<button class="req-btn" id="dvHeroReqBtn"><svg viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg>Request collab</button>`;
+
+  return `
+    <div class="who">
+      ${authorStack}
+      <div>
+        <div class="author-label">Author</div>
+        <div class="author-name">${authorNames}</div>
+        <div class="author-when">${role ? escapeHtml(role) + ' · ' : ''}${escapeHtml(timeAgo(i.createdAt) || 'just now')}</div>
+      </div>
+    </div>
+    ${collabBlock}
+    ${reqBtnHtml}`;
+}
+
+function formatNameList(names) {
+  if (!names.length) return '';
+  if (names.length === 1) return names[0];
+  if (names.length === 2) return names[0] + ' and ' + names[1];
+  return names.slice(0, -1).join(', ') + ' and ' + names[names.length - 1];
+}
+
+/* ---- Open the detail view ---- */
 function openDetail(id) {
   const i = ideas.find(x => x.id === id);
   if (!i) return;
   openIdeaId = id;
-  const a = i.author || {};
-  const av = a.avatarColor || colorFor(a.name || i.id);
 
   const isReq = getCollabRequested().includes(i.id);
-  document.getElementById('detailMeta').innerHTML = `
+
+  /* Top pill row */
+  document.getElementById('dvTop').innerHTML = `
     <span class="pill ${statusToPillClass(i.status)}"><span class="dot"></span>${escapeHtml(i.status.toUpperCase())}</span>
     <span class="pill space">${escapeHtml(i.space || 'Other')}</span>
-    <button class="req-collab-btn ${isReq ? 'sent' : ''}" id="detailReqCollab">
-      ${isReq
-        ? '<svg viewBox="0 0 24 24"><path d="M5 12l4 4L19 6"/></svg>Requested'
-        : '<svg viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg>Request collab'}
-    </button>`;
-  document.getElementById('detailTitle').textContent    = i.title;
-  document.getElementById('detailProblem').textContent  = i.problem  || '—';
-  document.getElementById('detailProposal').textContent = i.proposal || '—';
-  document.getElementById('detailMeasure').textContent  = i.measure  || '—';
+    ${isAuthorOf(i) ? '' : `
+      <button class="req-collab-btn ${isReq ? 'sent' : ''}" id="dvReqCollabBtn">
+        ${isReq
+          ? '<svg viewBox="0 0 24 24"><path d="M5 12l4 4L19 6"/></svg>Requested'
+          : '<svg viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg>Request collab'}
+      </button>`}`;
+  const topReq = document.getElementById('dvReqCollabBtn');
+  if (topReq) topReq.addEventListener('click', (e) => { e.stopPropagation(); requestCollab(i.id); });
 
-  document.getElementById('detailAuthorBlock').innerHTML = renderByline(i, 'sm');
+  /* Title + one-line lede (first line of proposal) */
+  document.getElementById('dvTitle').textContent = i.title;
+  const lede = (i.proposal || i.problem || '').split('\n')[0].slice(0, 200);
+  document.getElementById('dvLede').textContent = lede;
 
-  // hook up the request-collab button inside the modal
-  const reqBtn = document.getElementById('detailReqCollab');
-  if (reqBtn) {
-    reqBtn.addEventListener('click', (e) => {
-      e.stopPropagation();
-      requestCollab(i.id);
-      openDetail(i.id);
-    });
-  }
+  /* Author hero */
+  document.getElementById('dvAuthorHero').innerHTML = renderAuthorHero(i, isReq);
+  const heroReq = document.getElementById('dvHeroReqBtn');
+  if (heroReq) heroReq.addEventListener('click', (e) => { e.stopPropagation(); requestCollab(i.id); });
 
-  // collaborators section — exclude the author + co-author (they have their own slot)
-  const collabSec  = document.getElementById('detailCollabSection');
-  const collabList = document.getElementById('detailCollabList');
-  const authorName  = (i.author?.name   || '').trim().toLowerCase();
-  const coAuthName  = (i.coAuthor?.name || '').trim().toLowerCase();
-  const rawCollabs  = Array.isArray(i.collaborators) ? i.collaborators : [];
-  const collabs = rawCollabs.filter(c => {
-    const n = (c.name || '').trim().toLowerCase();
-    return n && n !== authorName && n !== coAuthName;
-  });
-  if (collabs.length) {
-    collabSec.style.display = '';
-    collabList.innerHTML = collabs.map(c => {
-      const cav = c.avatarColor || colorFor(c.name || '');
-      return `<span class="collab-chip">
-        <span class="avatar" style="background:${cav}">${escapeHtml(initialsOf(c.name))}</span>
-        <span>${escapeHtml(c.name || 'Anonymous')}</span>
-      </span>`;
-    }).join('');
-  } else {
-    collabSec.style.display = 'none';
-    collabList.innerHTML = '';
-  }
+  /* Sections */
+  document.getElementById('dvProblem').textContent  = i.problem  || '—';
+  document.getElementById('dvProposal').textContent = i.proposal || '—';
+  document.getElementById('dvMeasure').textContent  = i.measure  || '—';
 
-  // attachments section
-  const attSec  = document.getElementById('detailAttachSection');
-  const attList = document.getElementById('detailAttachList');
+  /* Attachments */
   const atts = Array.isArray(i.attachments) ? i.attachments : [];
+  const attSec = document.getElementById('dvAttachSec');
+  const attList = document.getElementById('dvAttachList');
   if (atts.length) {
     attSec.style.display = '';
     attList.innerHTML = atts.map(a => renderAttachmentItem(a, false)).join('');
@@ -2242,61 +2711,173 @@ function openDetail(id) {
     attSec.style.display = 'none';
     attList.innerHTML = '';
   }
-  document.getElementById('detailUpvoteCount').textContent = i.upvotes || 0;
 
-  const upBtn = document.getElementById('detailUpvote');
-  upBtn.classList.toggle('btn-coral', getUpvoted().includes(id));
+  /* Discussion (no posting UI in v1) */
+  const cArr = Array.isArray(i.comments) ? i.comments : [];
+  const ccount = typeof i.comments === 'number' ? i.comments : cArr.length;
+  document.getElementById('dvCommentCount').textContent = '( ' + ccount + ' )';
+  const dvc = document.getElementById('dvComments');
+  if (cArr.length) {
+    dvc.innerHTML = cArr.map(c => {
+      const cav = c.avatarColor || colorFor(c.name || '');
+      return `
+        <div class="comment">
+          <div class="comment-row">
+            <span class="avatar sm" style="background:${cav}">${escapeHtml(initialsOf(c.name))}</span>
+            <div style="flex:1; min-width:0;">
+              <div class="top"><span class="name">${escapeHtml(c.name || 'Anonymous')}</span><span class="when">${escapeHtml(timeAgo(c.at))}</span></div>
+              <p class="body">${escapeHtml(c.body || '')}</p>
+            </div>
+          </div>
+        </div>`;
+    }).join('');
+  } else {
+    dvc.innerHTML = '<div class="discussion-empty">No comments yet — discussion is coming soon.</div>';
+  }
 
-  // admin controls
-  const adminWrap = document.getElementById('detailAdminControls');
+  /* Right rail — stats */
+  const accCollabs = (i.collaborators || []).filter(c => (c.status || 'accepted') === 'accepted');
+  document.getElementById('dvUpvotes').textContent     = i.upvotes || 0;
+  document.getElementById('dvCollabCount').textContent = accCollabs.length;
+  document.getElementById('dvComments2').textContent   = ccount;
+  const upBtn = document.getElementById('dvUpvoteBtn');
+  upBtn.classList.toggle('upvoted', getUpvoted().includes(i.id));
+  document.getElementById('dvUpvoteLabel').textContent = getUpvoted().includes(i.id) ? 'Upvoted' : 'Upvote this idea';
+
+  /* Right rail — requests panel (author-only) */
+  const reqCard = document.getElementById('dvReqCard');
+  const reqList = document.getElementById('dvReqList');
+  const pending = (i.collaborators || []).filter(c => c.status === 'pending');
+  if (isAuthorOf(i) && pending.length) {
+    reqCard.style.display = '';
+    const lastName = (i.author?.name || '').split(' ').slice(-1)[0] || 'you';
+    document.getElementById('dvVisibleTo').textContent = 'Visible to ' + lastName + ' only.';
+    reqList.innerHTML = pending.map(p => {
+      const av = p.avatarColor || colorFor(p.name || '');
+      return `
+        <div class="req-item">
+          <div class="req-head">
+            <span class="avatar sm" style="background:${av}">${escapeHtml(initialsOf(p.name))}</span>
+            <div class="who">
+              <div class="name">${escapeHtml(p.name)}</div>
+              <div class="when">${escapeHtml(timeAgo(p.at) || 'just now')}</div>
+            </div>
+          </div>
+          ${p.message ? `<p class="quote">"${escapeHtml(p.message)}"</p>` : ''}
+          <div class="row">
+            <button class="req-btn-sm accept" data-req-accept="${escapeHtml(p.name)}">Accept</button>
+            <button class="req-btn-sm decline" data-req-decline="${escapeHtml(p.name)}">Decline</button>
+          </div>
+        </div>`;
+    }).join('');
+    reqList.querySelectorAll('[data-req-accept]').forEach(b => {
+      b.addEventListener('click', () => acceptCollab(i.id, b.dataset.reqAccept));
+    });
+    reqList.querySelectorAll('[data-req-decline]').forEach(b => {
+      b.addEventListener('click', () => declineCollab(i.id, b.dataset.reqDecline));
+    });
+  } else {
+    reqCard.style.display = 'none';
+    reqList.innerHTML = '';
+  }
+
+  /* Right rail — activity (newest first) */
+  const events = Array.isArray(i.activity) ? i.activity.slice() : [];
+  events.sort((a, b) => new Date(b.at) - new Date(a.at));
+  const actEl = document.getElementById('dvActivity');
+  if (!events.length) {
+    actEl.innerHTML = '<div style="color:var(--muted); font-size:12.5px;">No activity yet.</div>';
+  } else {
+    actEl.innerHTML = events.slice(0, 20).map(ev => `
+      <div class="activity-item ${activityCssClass(ev)}">
+        <span class="dot"></span>
+        <div class="body">${activityLabel(ev)}</div>
+        <span class="when">${escapeHtml(timeAgo(ev.at) || '')}</span>
+      </div>`).join('');
+  }
+
+  /* Admin controls */
+  const adminWrap = document.getElementById('dvAdminControls');
   if (isAdmin()) {
-    adminWrap.style.display = 'inline-flex';
-    document.getElementById('detailStatus').value = i.status;
+    adminWrap.style.display = 'flex';
+    document.getElementById('dvStatus').value = i.status;
   } else {
     adminWrap.style.display = 'none';
   }
 
-  document.getElementById('detailModal').classList.add('on');
+  showView('detail');
 }
-function closeDetail() {
-  document.getElementById('detailModal').classList.remove('on');
-  openIdeaId = null;
-}
-document.getElementById('detailModal').addEventListener('click', (e) => {
-  if (e.target.id === 'detailModal') closeDetail();
-});
-document.getElementById('detailUpvote').addEventListener('click', () => {
-  if (!openIdeaId) return;
-  toggleUpvote(openIdeaId);
-  // re-render modal counts
-  openDetail(openIdeaId);
-});
-document.getElementById('detailMergeBtn').addEventListener('click', () => {
-  if (!openIdeaId) return;
-  if (!isAdmin())  return;
-  openMergePicker(openIdeaId);
-});
 
-document.getElementById('detailStatus').addEventListener('change', (e) => {
-  if (!openIdeaId) return;
-  const idea = ideas.find(i => i.id === openIdeaId);
+function closeDetail() {
+  openIdeaId = null;
+  showView('feed');
+}
+
+/* Accept / Decline collab request */
+function acceptCollab(ideaId, name) {
+  const idea = ideas.find(x => x.id === ideaId);
   if (!idea) return;
-  idea.status = e.target.value;
-  idea.updatedAt = new Date().toISOString();
+  const c = (idea.collaborators || []).find(c => (c.name || '').toLowerCase() === (name || '').toLowerCase());
+  if (!c) return;
+  c.status = 'accepted';
+  c.acceptedAt = new Date().toISOString();
+  logActivity(idea, 'joined', c.name);
   saveToCache(ideas);
-  postRemote('updateStatus', { id: openIdeaId, status: idea.status });
-  toast('Status updated');
+  postRemote('acceptCollab', { id: ideaId, name });
+  toast(c.name + ' is now a collaborator');
   render();
-  openDetail(openIdeaId);
-});
+  openDetail(ideaId);
+}
+function declineCollab(ideaId, name) {
+  const idea = ideas.find(x => x.id === ideaId);
+  if (!idea) return;
+  idea.collaborators = (idea.collaborators || []).filter(c => (c.name || '').toLowerCase() !== (name || '').toLowerCase());
+  logActivity(idea, 'declined', name);
+  saveToCache(ideas);
+  postRemote('declineCollab', { id: ideaId, name });
+  toast('Declined ' + name + '\'s request');
+  render();
+  openDetail(ideaId);
+}
+
+/* Wire boot-time handlers on detail-view controls */
+(function wireDetailControls() {
+  const sel = document.getElementById('dvStatus');
+  const merge = document.getElementById('dvMergeBtn');
+  const ub  = document.getElementById('dvUpvoteBtn');
+  if (sel) sel.addEventListener('change', () => {
+    if (!openIdeaId) return;
+    const idea = ideas.find(x => x.id === openIdeaId);
+    if (!idea) return;
+    if (idea.status === sel.value) return;
+    idea.status = sel.value;
+    idea.updatedAt = new Date().toISOString();
+    logActivity(idea, 'status', isAdmin() ? 'Admin' : (getUserName() || 'Someone'), idea.status);
+    saveToCache(ideas);
+    postRemote('updateStatus', { id: openIdeaId, status: idea.status });
+    toast('Status updated');
+    render();
+    openDetail(openIdeaId);
+  });
+  if (merge) merge.addEventListener('click', () => {
+    if (!openIdeaId || !isAdmin()) return;
+    openMergePicker(openIdeaId);
+  });
+  if (ub) ub.addEventListener('click', () => {
+    if (!openIdeaId) return;
+    toggleUpvote(openIdeaId);
+    openDetail(openIdeaId);
+  });
+})();
 
 /* ============================================================
    View switching
    ============================================================ */
 function showView(name) {
   document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
-  if (name === 'post')      document.getElementById('postView').classList.add('active');
-  else                      document.getElementById('feedView').classList.add('active');
+  if      (name === 'post')   document.getElementById('postView').classList.add('active');
+  else if (name === 'detail') document.getElementById('detailView').classList.add('active');
+  else                        document.getElementById('feedView').classList.add('active');
   window.scrollTo({ top: 0, behavior: 'smooth' });
 }
 
@@ -2675,10 +3256,12 @@ async function postIdea(asPreview) {
     },
     collaborators: [],
     attachments:   f.attachments || [],
+    activity:      [],
     upvotes: 0,
     comments: 0,
     createdAt: new Date().toISOString(),
   };
+  logActivity(newIdea, 'post', f.name);
 
   ideas.unshift(newIdea);
   saveToCache(ideas);
