@@ -615,6 +615,17 @@
   /* Generic icon used for newly-added modules until admin edits it. */
   const GENERIC_ICON = '<rect x="3" y="3" width="18" height="18" rx="3"/><path d="M3 9h18M9 21V9"/>';
 
+  /* Modules whose sidebar entries are visible to admins only. Hardcoded
+     by key so this works even when the user's stored DEFAULT_MODULES
+     (cached in localStorage as 'projex.modules') predates the flag. */
+  const ADMIN_ONLY_KEYS = new Set(['food-tracker']);
+
+  /* Returns the subset of getModules() that the current user can see. */
+  function getVisibleModules() {
+    const admin = isAdmin();
+    return getModules().filter(m => admin || !ADMIN_ONLY_KEYS.has(m.key));
+  }
+
   /* SVG inner-markup for the sign-in / sign-out icons. */
   const SIGNIN_ICON  = '<path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4M10 17l5-5-5-5M15 12H3"/>';
   const SIGNOUT_ICON = '<path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4M16 17l5-5-5-5M21 12H9"/>';
@@ -631,6 +642,14 @@
     document.body.classList.toggle('admin', yes);
     updateSignBar();
     renderNav();
+
+    /* If we just dropped admin while viewing an admin-only module,
+       switch to the first visible one so the user isn't stranded
+       on a hidden tab. */
+    if (!yes && activeKey && ADMIN_ONLY_KEYS.has(activeKey)) {
+      const next = getVisibleModules()[0];
+      if (next) loadModule(next.key);
+    }
   }
   function getModules() {
     try {
@@ -704,7 +723,7 @@
   /* ---------- nav rendering ---------- */
 
   function renderNav() {
-    const modules = getModules();
+    const modules = getVisibleModules();
     nav.innerHTML = '';
     modules.forEach(m => {
       const a = document.createElement('a');
@@ -941,7 +960,7 @@
   renderNav();
 
   (function bootInitialModule() {
-    const modules = getModules();
+    const modules = getVisibleModules();
     if (!modules.length) return;
     let key = null;
     try {
