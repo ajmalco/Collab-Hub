@@ -936,6 +936,27 @@
   }
   .attach-link-row .add-link-btn:hover { background: var(--navy-deep); }
 
+  /* Admin "Approve idea" button — green pop, shown only when status is In review */
+  .btn-approve {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 8px 14px;
+    background: var(--mint);
+    color: #fff;
+    border: 0;
+    border-radius: 8px;
+    font-family: inherit;
+    font-size: 12.5px;
+    font-weight: 600;
+    cursor: pointer;
+    box-shadow: 0 6px 14px -6px rgba(45,186,139,0.55);
+    transition: background 0.15s, transform 0.1s;
+  }
+  .btn-approve:hover { background: #239571; }
+  .btn-approve:active { transform: translateY(1px); }
+  .btn-approve svg { width: 13px; height: 13px; stroke: currentColor; fill: none; stroke-width: 2.5; }
+
   .status-select {
     padding: 8px 12px;
     border: 1px solid var(--line);
@@ -1737,6 +1758,10 @@
             <option>In review</option>
             <option>Adopted</option>
           </select>
+          <button class="btn-approve" id="dvApproveBtn" style="display:none">
+            <svg viewBox="0 0 24 24"><path d="M5 12l4 4L19 6"/></svg>
+            Approve idea
+          </button>
           <button class="btn-ghost" id="dvMergeBtn">
             <svg viewBox="0 0 24 24" style="width:14px;height:14px;stroke:currentColor;fill:none;stroke-width:2;"><path d="M8 3L3 8l5 5M3 8h13a5 5 0 0 1 5 5v8M16 21l5-5-5-5"/></svg>
             Merge in…
@@ -2801,6 +2826,9 @@ function openDetail(id) {
   if (isAdmin()) {
     adminWrap.style.display = 'flex';
     document.getElementById('dvStatus').value = i.status;
+    /* Approve button is only meaningful while the idea is awaiting review */
+    const approveBtn = document.getElementById('dvApproveBtn');
+    if (approveBtn) approveBtn.style.display = (i.status === 'In review') ? 'inline-flex' : 'none';
   } else {
     adminWrap.style.display = 'none';
   }
@@ -2862,6 +2890,22 @@ function declineCollab(ideaId, name) {
   if (merge) merge.addEventListener('click', () => {
     if (!openIdeaId || !isAdmin()) return;
     openMergePicker(openIdeaId);
+  });
+  /* Approve idea (admin, status=In review → Adopted) */
+  const approveBtn = document.getElementById('dvApproveBtn');
+  if (approveBtn) approveBtn.addEventListener('click', () => {
+    if (!openIdeaId || !isAdmin()) return;
+    const idea = ideas.find(x => x.id === openIdeaId);
+    if (!idea) return;
+    if (idea.status !== 'In review') return;
+    idea.status = 'Adopted';
+    idea.updatedAt = new Date().toISOString();
+    logActivity(idea, 'status', 'Admin', 'Adopted');
+    saveToCache(ideas);
+    postRemote('updateStatus', { id: openIdeaId, status: idea.status });
+    toast('Idea approved — marked as Adopted');
+    render();
+    openDetail(openIdeaId);
   });
   if (ub) ub.addEventListener('click', () => {
     if (!openIdeaId) return;
