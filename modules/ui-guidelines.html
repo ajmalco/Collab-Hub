@@ -34,6 +34,67 @@
     overflow: hidden;
   }
 
+  /* ---------- download bar ---------- */
+  .download-bar {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    padding: 11px 24px;
+    background: linear-gradient(90deg, var(--indigo-soft) 0%, #F4F5F9 100%);
+    border-bottom: 1px solid var(--line);
+    flex-shrink: 0;
+  }
+  .download-bar.hidden { display: none; }
+  .download-bar .ic {
+    width: 30px; height: 30px;
+    border-radius: 8px;
+    background: linear-gradient(135deg, var(--indigo) 0%, var(--indigo-deep) 100%);
+    display: grid; place-items: center;
+    flex-shrink: 0;
+    box-shadow: 0 4px 10px -4px rgba(92,104,242,0.5);
+  }
+  .download-bar .ic svg { width: 15px; height: 15px; stroke: #fff; fill: none; stroke-width: 2; }
+  .download-bar .text {
+    flex: 1;
+    min-width: 0;
+    font-size: 12.5px;
+    color: var(--ink-2);
+    line-height: 1.45;
+  }
+  .download-bar .text b { font-weight: 600; color: var(--ink); margin-right: 4px; }
+  .download-bar a.dl-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+    padding: 8px 14px;
+    background: var(--indigo);
+    color: #fff;
+    border-radius: 8px;
+    font-size: 12.5px;
+    font-weight: 500;
+    text-decoration: none;
+    transition: background 0.15s, transform 0.1s;
+    flex-shrink: 0;
+  }
+  .download-bar a.dl-btn:hover { background: var(--indigo-deep); }
+  .download-bar a.dl-btn:active { transform: translateY(1px); }
+  .download-bar a.dl-btn svg { width: 13px; height: 13px; stroke: currentColor; fill: none; stroke-width: 2; }
+  .download-bar .dl-close {
+    background: transparent;
+    border: 0;
+    color: var(--muted);
+    padding: 5px;
+    border-radius: 6px;
+    cursor: pointer;
+    display: grid;
+    place-items: center;
+    flex-shrink: 0;
+  }
+  .download-bar .dl-close:hover { background: rgba(0,0,0,0.05); color: var(--ink); }
+  .download-bar .dl-close svg { width: 14px; height: 14px; stroke: currentColor; fill: none; stroke-width: 2; }
+  /* hide the × close button for non-admin viewers */
+  body:not(.is-admin) .download-bar .dl-close { display: none; }
+
   /* ---------- header ---------- */
   header {
     display: flex;
@@ -375,6 +436,27 @@
 </head>
 <body>
 
+  <!-- Claude skill download bar — sits above the admin header.
+       Shown to all viewers by default. Admin can dismiss via the ×
+       button or via the Configure modal toggle. -->
+  <div class="download-bar" id="downloadBar">
+    <div class="ic">
+      <svg viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M7 10l5 5 5-5M12 15V3"/></svg>
+    </div>
+    <div class="text">
+      <b>Bizbox Design System</b><span>— download the markdown so Claude can reference these guidelines as a skill in your projects.</span>
+    </div>
+    <a class="dl-btn" id="downloadBtn"
+       href="../Bizbox_Design_System_ClaudeSkill.md"
+       download="Bizbox_Design_System_ClaudeSkill.md">
+      <svg viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M7 10l5 5 5-5M12 15V3"/></svg>
+      Download
+    </a>
+    <button class="dl-close" id="downloadCloseBtn" title="Hide for everyone">
+      <svg viewBox="0 0 24 24"><path d="M18 6L6 18M6 6l12 12"/></svg>
+    </button>
+  </div>
+
   <header>
     <div class="doc-info">
       <div class="doc-icon">
@@ -415,6 +497,17 @@
         <button class="close" id="closeBtn">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 6L6 18M6 6l12 12"/></svg>
         </button>
+      </div>
+
+      <!-- Display settings — always visible regardless of source tab -->
+      <div style="padding: 4px 24px 16px;">
+        <div class="toggle-row">
+          <div>
+            <div class="lbl">Show Claude-skill download bar</div>
+            <div class="sub">Visible to everyone at the top of UI Guidelines. Lets viewers download the Bizbox Design System markdown for use as a Claude skill.</div>
+          </div>
+          <div class="switch on" id="downloadToggle"></div>
+        </div>
       </div>
 
       <div class="tabs">
@@ -515,10 +608,52 @@
 (function gateHeader() {
   let isAdmin = false;
   try { isAdmin = localStorage.getItem('projex.admin') === '1'; } catch (_) {}
+  if (isAdmin) document.body.classList.add('is-admin');
   if (!isAdmin) {
     const h = document.querySelector('header');
     if (h) h.style.display = 'none';
   }
+})();
+
+/* Show / hide the Claude-skill download bar. The bar is shown to all
+   viewers by default. Admin can dismiss it via the × button (or the
+   toggle inside the Configure modal); the choice is persisted in
+   localStorage and applies to everyone on this device. */
+(function wireDownloadBar() {
+  const bar     = document.getElementById('downloadBar');
+  const closeBt = document.getElementById('downloadCloseBtn');
+  if (!bar) return;
+
+  function isHidden() {
+    try { return localStorage.getItem('uig.hideDownload') === '1'; } catch (_) { return false; }
+  }
+  function setHidden(yes) {
+    try {
+      if (yes) localStorage.setItem('uig.hideDownload', '1');
+      else     localStorage.removeItem('uig.hideDownload');
+    } catch (_) {}
+    bar.classList.toggle('hidden', yes);
+  }
+
+  /* Initial visibility */
+  if (isHidden()) bar.classList.add('hidden');
+
+  /* Admin-only × button — non-admin viewers don't see this (CSS hides
+     it via body:not(.is-admin)). Defensive double-check on click. */
+  if (closeBt) {
+    closeBt.addEventListener('click', () => {
+      const isAdmin = document.body.classList.contains('is-admin');
+      if (!isAdmin) return;
+      setHidden(true);
+      if (typeof toast === 'function') toast('Download bar hidden — re-enable in Configure');
+    });
+  }
+
+  /* Expose a tiny API so the Configure modal toggle can drive it too. */
+  window.__downloadBarApi = {
+    isHidden,
+    setHidden,
+  };
 })();
 
 const LS = {
@@ -718,6 +853,7 @@ syncBtn.addEventListener('click', () => syncFromGithub(true));
 const backdrop = $('modalBackdrop');
 const repoUrlInput = $('repoUrl');
 const autoSyncToggle = $('autoSyncToggle');
+const downloadToggle = $('downloadToggle');
 const drop = $('drop');
 const fileInput = $('fileInput');
 const fileChosen = $('fileChosen');
@@ -732,6 +868,9 @@ function openModal() {
   // Populate from current state
   repoUrlInput.value = localStorage.getItem(LS.ghUrl) || '';
   autoSyncToggle.classList.toggle('on', localStorage.getItem(LS.ghAutoSync) !== '0');
+  // download bar toggle reflects current visibility (on = shown, off = hidden)
+  const dlHidden = localStorage.getItem('uig.hideDownload') === '1';
+  if (downloadToggle) downloadToggle.classList.toggle('on', !dlHidden);
   pendingUpload = null;
   fileChosen.style.display = 'none';
   uploadStatus.textContent = '';
@@ -766,6 +905,11 @@ document.querySelectorAll('.tab').forEach(t => t.addEventListener('click', () =>
 
 /* auto-sync toggle */
 autoSyncToggle.addEventListener('click', () => autoSyncToggle.classList.toggle('on'));
+
+/* download-bar toggle — staged until Save is clicked */
+if (downloadToggle) {
+  downloadToggle.addEventListener('click', () => downloadToggle.classList.toggle('on'));
+}
 
 /* file picker + drag-drop */
 drop.addEventListener('click', () => fileInput.click());
@@ -824,6 +968,10 @@ $('saveBtn').addEventListener('click', async () => {
     }
     localStorage.setItem(LS.ghUrl, raw);
     localStorage.setItem(LS.ghAutoSync, autoSyncToggle.classList.contains('on') ? '1' : '0');
+    // apply download-bar visibility from the staged toggle
+    if (downloadToggle && window.__downloadBarApi) {
+      window.__downloadBarApi.setHidden(!downloadToggle.classList.contains('on'));
+    }
     localStorage.setItem(LS.source, 'github');
     syncBtn.style.display = '';
     closeModal();
