@@ -198,6 +198,134 @@
      its own scrollbar, the body's 1fr columns would be ~10px narrower than
      the head's, drifting the time-cell and column boundaries by ~3px per
      column. Sticky header avoids that mismatch entirely. */
+  /* Wrapping column for the floor tabs + grid. Must propagate the .main
+     grid track's height to .grid-wrap so its internal scroll keeps working —
+     display:flex + min-height:0 is the magic combo. */
+  .grid-col {
+    display: flex;
+    flex-direction: column;
+    min-height: 0;
+    min-width: 0;
+    height: 100%;
+  }
+  .grid-col .grid-wrap {
+    flex: 1 1 auto;
+    min-height: 0;
+  }
+  /* When the active floor has more rooms than fit comfortably, .grid-wrap
+     scrolls horizontally. The right edge gets a soft fade so the last
+     barely-visible room reads as "there's more — scroll to see it". The fade
+     auto-hides at the end of horizontal scroll via scroll-shadow trick. */
+  .grid-col .grid-wrap {
+    overflow-x: auto;
+    overflow-y: auto;
+    mask-image: linear-gradient(
+      to right,
+      black 0%,
+      black calc(100% - 80px),
+      rgba(0,0,0,0.15) 100%
+    );
+    -webkit-mask-image: linear-gradient(
+      to right,
+      black 0%,
+      black calc(100% - 80px),
+      rgba(0,0,0,0.15) 100%
+    );
+  }
+  /* On the 2nd floor (only 2 rooms — they fit comfortably), remove the fade
+     because there's nothing to scroll to. */
+  .grid-col[data-floor="2nd"] .grid-wrap {
+    mask-image: none;
+    -webkit-mask-image: none;
+    overflow-x: hidden;
+  }
+
+  /* Scroll arrows — sit inside .grid-col, one on each edge. Visibility is
+     driven by JS based on scroll position: left arrow hidden at scrollLeft=0,
+     right arrow hidden when scrolled all the way right. Both hidden on the
+     2nd floor since horizontal scrolling isn't needed there. */
+  .grid-col {
+    position: relative;
+  }
+  .floor-scroll-arrow {
+    position: absolute;
+    top: 140px;           /* aligned just below the sticky head's icon row */
+    z-index: 20;
+    width: 34px; height: 34px;
+    border-radius: 50%;
+    border: 1px solid var(--line);
+    background: #fff;
+    color: var(--ink);
+    display: grid;
+    place-items: center;
+    cursor: pointer;
+    box-shadow: 0 4px 12px rgba(15, 23, 42, 0.10);
+    transition: background 0.15s, color 0.15s, opacity 0.18s, transform 0.18s;
+    opacity: 1;
+  }
+  .floor-scroll-right { right: 6px; }
+  .floor-scroll-left  { left:  120px; }       /* sits just right of the 108px time gutter */
+  .floor-scroll-arrow:hover { background: var(--accent-soft); color: var(--accent); }
+  .floor-scroll-arrow:active { transform: translateY(1px) scale(0.95); }
+  /* Hidden state: animate out so the disappearance reads as intentional */
+  .floor-scroll-arrow.hide {
+    opacity: 0;
+    pointer-events: none;
+    transform: scale(0.85);
+  }
+  .grid-col[data-floor="2nd"] .floor-scroll-arrow { display: none; }
+
+  /* Floor tabs — integrated into the timeline card, sitting flush against
+     its rounded top edge as a unified header strip. Sticks to position:
+     sticky like the grid-head so it stays visible while the timeline scrolls. */
+  .floor-tabs {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 10px 12px;
+    background: #FAFBFC;
+    border-bottom: 1px solid var(--line);
+    font-family: 'Inter', system-ui, sans-serif;
+    user-select: none;
+    position: sticky;
+    top: 0;
+    z-index: 12;       /* above .grid-head which is z-index 10 */
+    flex-shrink: 0;
+    /* Stay anchored to the left edge while the timeline scrolls horizontally —
+       the tabs shouldn't drift off-screen when scrolling rooms. */
+    left: 0;
+  }
+  .floor-tab {
+    padding: 7px 16px;
+    border-radius: 7px;
+    border: 1px solid transparent;
+    background: transparent;
+    color: var(--muted);
+    font-size: 11.5px;
+    font-weight: 700;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    cursor: pointer;
+    transition: background 0.18s, color 0.18s, box-shadow 0.18s, border-color 0.18s;
+    font-family: inherit;
+  }
+  .floor-tab:hover { color: var(--ink); background: rgba(15, 23, 42, 0.04); }
+  .floor-tab.active {
+    background: #fff;
+    color: var(--ink);
+    border-color: var(--line);
+    box-shadow: 0 1px 3px rgba(15, 23, 42, 0.08);
+  }
+  .floor-tab .count {
+    margin-left: 6px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10.5px;
+    font-weight: 700;
+    color: var(--muted);
+    letter-spacing: 0;
+  }
+  .floor-tab.active .count { color: var(--accent); }
+
   .grid-wrap {
     background: #fff;
     border: 1px solid var(--line);
@@ -218,14 +346,29 @@
   }
   .grid-head {
     display: grid;
-    grid-template-columns: 108px repeat(3, 1fr);
+    /* Each room column gets a generous minimum so 4-room views need a
+       horizontal scroll (the right-edge mask fades the partially-visible
+       last column). 2-room views fit the container width and don't scroll. */
+    grid-template-columns: 108px repeat(var(--room-count, 6), minmax(var(--room-min, 220px), 1fr));
     background: #FAFBFC;
     border-bottom: 1px solid var(--line);
     flex-shrink: 0;
     position: sticky;
-    top: 0;
+    /* Stick BELOW the floor-tabs (which itself is sticky at top: 0). The
+       value matches the floor-tabs measured height; if you change tab
+       padding/font size, update this number. */
+    top: 53px;
     z-index: 10;
+    min-width: max-content;
   }
+  /* Floor filter — when a floor is active, hide columns belonging to the
+     other floor in both the head AND every rendered row. display:none on
+     grid items collapses them out of layout so the visible columns
+     redistribute the freed 1fr space cleanly. */
+  .grid-head[data-floor="25th"] .gh-room[data-floor="2nd"],
+  .grid-body[data-floor="25th"] .slot[data-floor="2nd"]   { display: none; }
+  .grid-head[data-floor="2nd"]  .gh-room[data-floor="25th"],
+  .grid-body[data-floor="2nd"]  .slot[data-floor="25th"]  { display: none; }
   .gh-time {
     font-family: 'JetBrains Mono', monospace;
     font-size: 10px;
@@ -287,9 +430,10 @@
   }
   .row {
     display: grid;
-    grid-template-columns: 108px repeat(3, 1fr);
+    grid-template-columns: 108px repeat(var(--room-count, 6), minmax(var(--room-min, 220px), 1fr));
     border-bottom: 1px solid var(--line-soft);
     min-height: 50px;
+    min-width: max-content;
   }
   .row.hour-start { border-top: 1px solid var(--line); }
   .row.hour-start .time-cell { font-weight: 700; color: var(--ink); }
@@ -369,6 +513,7 @@
   .slot.booked.cat-planning::before    { background: #DCFCE7; border-left-color: #15803D; }
   .slot.booked.cat-retrospect::before  { background: #FCE7F0; border-left-color: #BE185D; }
   .slot.booked.cat-demo::before        { background: #E0E7FF; border-left-color: #4F46E5; }
+  .slot.booked.cat-standup::before     { background: #CFFAFE; border-left-color: #0891B2; }
   /* Title text picks up the category accent for quick recognition */
   .slot.booked.cat-meeting    .block-head .title { color: #2E5AAC; }
   .slot.booked.cat-discussion .block-head .title { color: #7C3AED; }
@@ -377,6 +522,7 @@
   .slot.booked.cat-planning   .block-head .title { color: #15803D; }
   .slot.booked.cat-retrospect .block-head .title { color: #BE185D; }
   .slot.booked.cat-demo       .block-head .title { color: #4F46E5; }
+  .slot.booked.cat-standup    .block-head .title { color: #0891B2; }
   /* ---- Category chip shown inside the cell block-head ---- */
   .cat-chip {
     font-size: 8.5px;
@@ -396,6 +542,7 @@
   .cat-chip-planning   { background: #15803D; color: #FFF; }
   .cat-chip-retrospect { background: #BE185D; color: #FFF; }
   .cat-chip-demo       { background: #4F46E5; color: #FFF; }
+  .cat-chip-standup    { background: #0891B2; color: #FFF; }
   .slot.booked.block-start::before {
     top: 4px;
     border-top-left-radius: 6px;
@@ -476,6 +623,7 @@
   .slot.booked.cat-planning   .block-time { color: #15803D; background: rgba(21,128,61,0.10); }
   .slot.booked.cat-retrospect .block-time { color: #BE185D; background: rgba(190,24,93,0.10); }
   .slot.booked.cat-demo       .block-time { color: #4F46E5; background: rgba(79,70,229,0.10); }
+  .slot.booked.cat-standup    .block-time { color: #0891B2; background: rgba(8,145,178,0.10); }
   .slot.booked .block-desc {
     flex: 1;
     min-height: 0;
@@ -1237,33 +1385,70 @@
 
   <!-- MAIN -->
   <div class="main">
-    <!-- Grid -->
-    <div class="grid-wrap" id="gridWrap">
-      <div class="grid-head">
-        <div class="gh-time">TIME · 12H</div>
-        <div class="gh-room">
-          <div class="ico">
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 20l4-16M16 4l4 16M8 12h8"/></svg>
-          </div>
-          <div class="name">War Room</div>
-          <div class="meta">CAP · 6</div>
+    <!-- Grid + floor filter (tabs now live INSIDE the timeline card) -->
+    <div class="grid-col" id="gridCol" data-floor="25th">
+      <button class="floor-scroll-arrow floor-scroll-left" id="gridScrollLeft" type="button" aria-label="Scroll left to see previous rooms" title="Scroll left">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M15 18l-6-6 6-6"/></svg>
+      </button>
+      <button class="floor-scroll-arrow floor-scroll-right" id="gridScrollRight" type="button" aria-label="Scroll right to see more rooms" title="Scroll right">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18l6-6-6-6"/></svg>
+      </button>
+      <div class="grid-wrap" id="gridWrap">
+        <div class="floor-tabs" role="tablist" aria-label="Filter by floor">
+          <button class="floor-tab active" id="floorTab25" type="button" role="tab" aria-selected="true" data-floor="25th">
+            25<span style="text-transform:lowercase">th</span> Floor<span class="count" id="floorCount25">4</span>
+          </button>
+          <button class="floor-tab" id="floorTab2" type="button" role="tab" aria-selected="false" data-floor="2nd">
+            2<span style="text-transform:lowercase">nd</span> Floor<span class="count" id="floorCount2">2</span>
+          </button>
         </div>
-        <div class="gh-room">
-          <div class="ico" style="background:#FDEFE8;color:#D85A2E">
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="14" rx="2"/><path d="M3 18l5-5 4 3 5-5 4 4"/></svg>
+        <div class="grid-head" id="gridHead" data-floor="25th">
+          <div class="gh-time">TIME · 12H</div>
+          <div class="gh-room" data-floor="25th" data-room="War Room">
+            <div class="ico">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 20l4-16M16 4l4 16M8 12h8"/></svg>
+            </div>
+            <div class="name">War Room</div>
+            <div class="meta">CAP · 24</div>
           </div>
-          <div class="name">CEO Meeting Room</div>
-          <div class="meta">CAP · 24</div>
-        </div>
-        <div class="gh-room is-blocked">
-          <div class="ico" style="background:#FEE2E2;color:#B91C1C">
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 20h20"/><path d="M5 20V8l7-4 7 4v12"/><path d="M9 20v-6h6v6"/></svg>
+          <div class="gh-room" data-floor="25th" data-room="CEO Meeting Room">
+            <div class="ico" style="background:#FDEFE8;color:#D85A2E">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="14" rx="2"/><path d="M3 18l5-5 4 3 5-5 4 4"/></svg>
+            </div>
+            <div class="name">CEO Meeting Room</div>
+            <div class="meta">CAP · 12</div>
           </div>
-          <div class="name">2nd Floor Meeting Rooms</div>
-          <div class="construction-badge">🚧 Under Construction</div>
+          <div class="gh-room" data-floor="25th" data-room="WW3 Room">
+            <div class="ico" style="background:#FEF3C7;color:#CA8A04">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2l3 7h7l-5.5 4.5L18 21l-6-4.5L6 21l1.5-7.5L2 9h7z"/></svg>
+            </div>
+            <div class="name">WW3 Room</div>
+            <div class="meta">CAP · 24</div>
+          </div>
+          <div class="gh-room" data-floor="25th" data-room="Meeting Room 4">
+            <div class="ico" style="background:#DCFCE7;color:#15803D">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="M7 10h10M7 14h6"/></svg>
+            </div>
+            <div class="name">Meeting Room 4</div>
+            <div class="meta">CAP · 24</div>
+          </div>
+          <div class="gh-room" data-floor="2nd" data-room="Meeting Room 1">
+            <div class="ico" style="background:#E0E7FF;color:#4F46E5">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="M7 10h10M7 14h6"/></svg>
+            </div>
+            <div class="name">Meeting Room 1</div>
+            <div class="meta">CAP · 12</div>
+          </div>
+          <div class="gh-room" data-floor="2nd" data-room="Mini Confe">
+            <div class="ico" style="background:#FCE7F0;color:#BE185D">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="8" r="3"/><circle cx="17" cy="10" r="2.5"/><path d="M3 20c0-2.5 2.5-5 6-5s6 2.5 6 5"/></svg>
+            </div>
+            <div class="name">Mini Confe</div>
+            <div class="meta">CAP · 12</div>
+          </div>
         </div>
+        <div class="grid-body" id="gridBody" data-floor="25th"></div>
       </div>
-      <div class="grid-body" id="gridBody"></div>
     </div>
 
     <!-- Scheduling card (light; manual picker lives inside) -->
@@ -1289,6 +1474,7 @@
           <option value="Planning">Planning</option>
           <option value="Retrospect">Retrospect</option>
           <option value="Demo">Demo</option>
+          <option value="Standup">Standup</option>
         </select>
       </div>
 
@@ -1331,9 +1517,16 @@
           <div class="room-select-inline">
             <span class="lbl">Room</span>
             <select id="manualRoom">
-              <option value="War Room" selected>War Room</option>
-              <option value="CEO Meeting Room">CEO Meeting Room</option>
-              <option value="2nd Floor Meeting Rooms" disabled>2nd Floor Meeting Rooms — Under Construction</option>
+              <optgroup label="25th Floor">
+                <option value="War Room" selected>War Room</option>
+                <option value="CEO Meeting Room">CEO Meeting Room</option>
+                <option value="WW3 Room">WW3 Room</option>
+                <option value="Meeting Room 4">Meeting Room 4</option>
+              </optgroup>
+              <optgroup label="2nd Floor">
+                <option value="Meeting Room 1">Meeting Room 1</option>
+                <option value="Mini Confe">Mini Confe</option>
+              </optgroup>
             </select>
           </div>
           <button class="apply-btn" id="applyManual">Apply</button>
@@ -1381,13 +1574,35 @@
 /* =========================
    CONSTANTS & STATE
    ========================= */
-const ROOMS = ['War Room', 'CEO Meeting Room', '2nd Floor Meeting Rooms'];
+/* ─── Rooms organized by floor ───
+   Server VALID_ROOMS must match this list exactly. The order here drives
+   the column order in the grid. ROOM_FLOOR is consulted by the floor-tab
+   filter — rooms on the non-selected floor have their columns hidden
+   without affecting booking indices. */
+const ROOMS = [
+  'War Room', 'CEO Meeting Room', 'WW3 Room', 'Meeting Room 4',  // 25th floor
+  'Meeting Room 1', 'Mini Confe'                                  // 2nd floor
+];
+const ROOM_FLOOR = {
+  'War Room':         '25th',
+  'CEO Meeting Room': '25th',
+  'WW3 Room':         '25th',
+  'Meeting Room 4':   '25th',
+  'Meeting Room 1':   '2nd',
+  'Mini Confe':       '2nd'
+};
+const FLOORS = ['25th', '2nd'];           // tab order, left to right
+let   currentFloor = '25th';              // default on load
 
 // Rooms that are visible in the grid but cannot accept new bookings.
 // The Apps Script backend enforces the same rule — this client-side block
 // is for fast UX feedback (no round-trip needed to know it's off-limits).
 const BLOCKED_ROOMS = {
-  '2nd Floor Meeting Rooms': 'Under construction — bookings disabled.'
+  // No rooms blocked in the multi-floor layout. The previous "2nd Floor
+  // Meeting Rooms" placeholder has been retired in favor of two real rooms
+  // (Meeting Room 1 and Mini Confe). If you need to disable a room again,
+  // add it here as 'Room Name': 'reason text' — the UI strips it from the
+  // bookable surface and the backend rejects writes against it.
 };
 function isRoomBlocked(room) { return Object.prototype.hasOwnProperty.call(BLOCKED_ROOMS, room); }
 
@@ -1445,7 +1660,10 @@ let bookingsByDate = LIVE_SYNC.endpoint ? {} : {
       '10:00': { user: 'Board Council', desc: 'Annual strategy sync', dark: true, locked: true },
       '10:30': { user: 'Board Council', desc: 'Annual strategy sync', dark: true, locked: true }
     },
-    '2nd Floor Meeting Rooms': {}
+    'WW3 Room':       {},
+    'Meeting Room 4': {},
+    'Meeting Room 1': {},
+    'Mini Confe':     {}
   }
 };
 function getBookings(date) {
@@ -1595,6 +1813,9 @@ function render() {
       cell.className = 'slot';
       cell.dataset.room = room;
       cell.dataset.idx = idx;
+      // data-floor lets the CSS hide cells whose floor doesn't match the
+      // active floor-tab without rebuilding the grid.
+      cell.dataset.floor = ROOM_FLOOR[room] || '';
 
       const bInfo = blockMap[room][idx]; // {block, isStart, isEnd} or undefined
       const lo = selection.startIdx !== null ? Math.min(selection.startIdx, selection.endIdx) : -1;
@@ -2252,7 +2473,108 @@ function showToast(msg, duration) {
   toastTimer = setTimeout(() => t.classList.remove('show'), duration || 2200);
 }
 
+/* =========================
+   FLOOR TABS (multi-floor filter)
+   -----------------------------------------------------------------
+   Single source of truth: currentFloor (state) + ROOM_FLOOR (room → floor).
+   On change we:
+     1. Update data-floor on .grid-head, .grid-body, .grid-wrap so CSS
+        hides cells whose data-floor doesn't match.
+     2. Update the --room-count CSS variable to the count of visible
+        rooms so the remaining grid columns expand to fill the freed space.
+     3. Toggle the .active class on the tab buttons.
+   No re-render needed — the same DOM stays in place, only visibility changes.
+   ========================= */
+function applyFloor(floor) {
+  if (!FLOORS.includes(floor)) return;
+  currentFloor = floor;
+  const visibleRooms = ROOMS.filter(r => ROOM_FLOOR[r] === floor);
+  const gridCol    = document.getElementById('gridCol');
+  const gridWrap   = document.getElementById('gridWrap');
+  const gridHead   = document.getElementById('gridHead');
+  const gridBodyEl = document.getElementById('gridBody');
+
+  gridCol.dataset.floor    = floor;     // used by CSS to hide the scroll arrow on 2nd
+  gridHead.dataset.floor   = floor;
+  gridBodyEl.dataset.floor = floor;
+  gridWrap.style.setProperty('--room-count', visibleRooms.length);
+  // The 25th floor (4 rooms) wants wider columns to force horizontal scroll
+  // with the right-edge fade. The 2nd floor (2 rooms) is happy with the
+  // narrower minimum so both columns fit the container width.
+  gridWrap.style.setProperty('--room-min', floor === '25th' ? '230px' : '160px');
+  // Reset the horizontal scroll on every floor change so users always start
+  // from the left edge of the new view.
+  gridWrap.scrollLeft = 0;
+  // Recompute the arrow visibility after the layout reflows from the new
+  // --room-count / --room-min values.
+  requestAnimationFrame(() => {
+    if (typeof updateScrollArrows === 'function') updateScrollArrows();
+  });
+
+  document.querySelectorAll('.floor-tab').forEach(btn => {
+    const active = btn.dataset.floor === floor;
+    btn.classList.toggle('active', active);
+    btn.setAttribute('aria-selected', active ? 'true' : 'false');
+  });
+
+  // If the user had a selection on a room that's now hidden, clear it.
+  if (selection.room && ROOM_FLOOR[selection.room] !== floor) {
+    selection = { room: null, startIdx: null, endIdx: null, source: null };
+    pendingAnchor = null;
+    if (typeof updateMeta === 'function') updateMeta();
+    render();
+  }
+}
+document.querySelectorAll('.floor-tab').forEach(btn => {
+  btn.addEventListener('click', () => applyFloor(btn.dataset.floor));
+});
+
+/* Bidirectional scroll arrows. Each one scrolls the grid by ~one room
+   column. Their visibility is driven by scroll position via
+   updateScrollArrows() — left hides at scrollLeft=0, right hides when
+   we've reached the right edge (scrollLeft + clientWidth >= scrollWidth).
+   Hidden entirely on 2nd floor (the CSS rule covers that). */
+const gridScrollRightBtn = document.getElementById('gridScrollRight');
+const gridScrollLeftBtn  = document.getElementById('gridScrollLeft');
+const gridWrapEl         = document.getElementById('gridWrap');
+
+function getRoomMinPx() {
+  const cs = getComputedStyle(gridWrapEl);
+  const minStr = cs.getPropertyValue('--room-min') || '230px';
+  return parseInt(minStr, 10) || 230;
+}
+
+function updateScrollArrows() {
+  if (!gridWrapEl || !gridScrollRightBtn || !gridScrollLeftBtn) return;
+  const sl = gridWrapEl.scrollLeft;
+  const max = gridWrapEl.scrollWidth - gridWrapEl.clientWidth;
+  // 2px tolerance for sub-pixel scroll rounding so the arrow doesn't
+  // flicker right at the boundaries.
+  gridScrollLeftBtn.classList.toggle('hide',  sl <= 2);
+  gridScrollRightBtn.classList.toggle('hide', sl >= max - 2);
+}
+
+if (gridScrollRightBtn) {
+  gridScrollRightBtn.addEventListener('click', () => {
+    gridWrapEl.scrollBy({ left: Math.round(getRoomMinPx() * 0.85), behavior: 'smooth' });
+  });
+}
+if (gridScrollLeftBtn) {
+  gridScrollLeftBtn.addEventListener('click', () => {
+    gridWrapEl.scrollBy({ left: -Math.round(getRoomMinPx() * 0.85), behavior: 'smooth' });
+  });
+}
+if (gridWrapEl) {
+  // The grid scrolls both vertically and horizontally — the same 'scroll'
+  // event fires for both; we only care about horizontal here.
+  gridWrapEl.addEventListener('scroll', updateScrollArrows, { passive: true });
+}
+
 render();
+// Apply the default floor (25th) after first render so the column count + data
+// attributes are in sync from the very first paint.
+applyFloor(currentFloor);
+
 // Open the schedule scrolled to 6:00 AM on load. The scroll container is
 // .grid-wrap (the sticky-header layout) — gridBody itself no longer scrolls.
 requestAnimationFrame(() => {
@@ -2293,121 +2615,6 @@ let firstSyncDone           = false;
 function liveSyncEnabled() {
   return !!(LIVE_SYNC.endpoint && typeof fetch === 'function');
 }
-
-/* =========================
-   LOCAL BOOKINGS CACHE (cross-session)
-   =========================
-   On every successful sync we persist {bookings, lastModifiedAt, knownIds}
-   to localStorage. On the next page open we restore that snapshot before
-   the first poll runs, then send since=<cachedLastModifiedAt> — the server
-   short-circuits with {unchanged:true} when nothing's changed, so a fresh
-   reload pays zero sheet-read cost in the common case. Only when the
-   workbook has actually changed does a full read happen.
-
-   What's cached:
-     - bookingsByDate (only sheetId-confirmed entries — never pending writes)
-     - lastModifiedAt (server's change-tracking watermark)
-     - lastKnownSheetIds (so the "N new bookings" diff stays accurate)
-
-   Cache size: each booking JSON-encodes to ~150 bytes. 5MB localStorage
-   limit fits ~30k bookings comfortably; we drop to a no-op if quota fails. */
-const CACHE_KEY = 'room-scheduler.cache.v2';
-
-function saveCache() {
-  if (!liveSyncEnabled()) return;
-  try {
-    // Strip optimistic/pending entries — they aren't authoritative yet.
-    // Also skip rooms/dates that ended up empty after filtering.
-    const cleanBookings = {};
-    Object.keys(bookingsByDate).forEach(date => {
-      const byRoom = bookingsByDate[date] || {};
-      const cleanDate = {};
-      Object.keys(byRoom).forEach(room => {
-        const cleanRoom = {};
-        Object.keys(byRoom[room] || {}).forEach(slot => {
-          const b = byRoom[room][slot];
-          if (b && b.sheetId && !b.pending) cleanRoom[slot] = b;
-        });
-        if (Object.keys(cleanRoom).length) cleanDate[room] = cleanRoom;
-      });
-      if (Object.keys(cleanDate).length) cleanBookings[date] = cleanDate;
-    });
-
-    const payload = JSON.stringify({
-      bookings: cleanBookings,
-      lastModifiedAt: lastModifiedAt,
-      knownIds: Array.from(lastKnownSheetIds),
-      savedAt: Date.now()
-    });
-    localStorage.setItem(CACHE_KEY, payload);
-  } catch (_) {
-    // Quota/serialization errors are non-fatal — we just lose the speedup
-    // for this cycle. Next save will retry.
-  }
-}
-
-function restoreCache() {
-  if (!liveSyncEnabled()) return false;
-  try {
-    const raw = localStorage.getItem(CACHE_KEY);
-    if (!raw) return false;
-    const cache = JSON.parse(raw);
-    if (!cache || typeof cache.lastModifiedAt !== 'number' || !cache.bookings) {
-      return false;
-    }
-
-    // Merge cached bookings into the in-memory store. We don't clobber
-    // entries that might already exist (e.g. demo seeds when the endpoint
-    // is set to '' for testing) — cached data is treated as overlay.
-    Object.keys(cache.bookings).forEach(date => {
-      if (!bookingsByDate[date]) bookingsByDate[date] = {};
-      Object.keys(cache.bookings[date]).forEach(room => {
-        if (!bookingsByDate[date][room]) bookingsByDate[date][room] = {};
-        Object.assign(bookingsByDate[date][room], cache.bookings[date][room]);
-      });
-    });
-
-    // IMPORTANT: we intentionally DON'T restore lastModifiedAt to the
-    // running variable. Leaving it at 0 forces the first poll after page
-    // load to do a full sheet read — so any changes that happened while
-    // this tab was closed always reflect on refresh, even if the server's
-    // own change-tracking has gaps (e.g. setupTriggers() wasn't installed
-    // for onChange, so row inserts/deletes don't bump the watermark).
-    //
-    // The cache still wins everywhere it matters: the UI renders instantly
-    // from restored bookings, no spinner. We just trade one full read per
-    // page load for guaranteed freshness on every refresh.
-    //
-    // Subsequent polls within the same session use the running
-    // lastModifiedAt the server returns, so mid-session polling stays
-    // efficient.
-    lastKnownSheetIds = new Set(cache.knownIds || []);
-    // firstSyncDone=true prevents cached items from being counted as "new
-    // bookings" on the first post-restore poll — they aren't new to this
-    // user, they were here last session.
-    firstSyncDone     = true;
-    return true;
-  } catch (_) {
-    return false;
-  }
-}
-
-/* Boot-time cache restore. Runs once on script load. If restoreCache()
-   succeeds, we trigger a render so the calendar shows yesterday's data
-   instantly — no spinner, no wait — while the first sync runs in the
-   background and reconciles any new changes from the server. */
-(function bootRestore() {
-  function go() {
-    if (restoreCache() && typeof render === 'function') {
-      render();
-    }
-  }
-  if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', go);
-  } else {
-    go();
-  }
-})();
 
 function setSyncState(s, err) {
   syncState = s;
@@ -2527,11 +2734,6 @@ function applySheetBookings(rows) {
   lastKnownSheetIds = newIds;
 
   render();
-
-  // Persist the fresh state so the next page reload starts from cache and
-  // only needs to ask the server "anything new since X?" — the server's
-  // conditional-GET fast-path handles the rest.
-  saveCache();
 }
 
 /* ---- Transport detection ----
