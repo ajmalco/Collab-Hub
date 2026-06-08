@@ -423,6 +423,54 @@
     border: 1px solid #FCA5A5;
   }
 
+  /* ---- Overflow room (CEO Meeting Room) header ----
+     Muted ink + small OVERFLOW chip below the capacity meta line. The room
+     is still interactable; the visual tone just signals "reserve / last
+     resort". */
+  .gh-room.overflow-room { background: rgba(15, 23, 42, 0.025); }
+  .gh-room.overflow-room .name { color: #6B6F76; }
+  .gh-room.overflow-room .meta { color: #9AA0A8; }
+  .gh-room.overflow-room .ico  { opacity: 0.75; }
+  .gh-room .overflow-badge {
+    display: inline-block;
+    margin-top: 4px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 9.5px;
+    font-weight: 700;
+    letter-spacing: 0.10em;
+    text-transform: uppercase;
+    padding: 2px 7px;
+    border-radius: 3px;
+    background: rgba(15, 23, 42, 0.06);
+    color: var(--muted);
+    border: 1px solid var(--line);
+  }
+
+  /* ---- Overflow cells in the timeline ----
+     Default: subtly striped + dimmed so users understand this row is the
+     reserve. When all non-overflow peers are booked at this slot, the cell
+     gets .overflow-ready added (by render()) which strips the dimming and
+     it looks like a normal available slot. */
+  .slot.overflow-room:not(.booked):not(.selected):not(.blocked) {
+    background-image: repeating-linear-gradient(
+      135deg,
+      transparent 0,
+      transparent 8px,
+      rgba(15, 23, 42, 0.045) 8px,
+      rgba(15, 23, 42, 0.045) 9px
+    );
+  }
+  .slot.overflow-room.overflow-ready:not(.booked):not(.selected) {
+    background-image: none;
+    /* Accent-soft tint with a left border accent to communicate "all other
+       rooms are booked — this overflow slot is the one to grab". */
+    background-color: rgba(229, 107, 63, 0.10);
+    box-shadow: inset 3px 0 0 var(--accent);
+  }
+  .slot.overflow-room.overflow-ready:hover:not(.booked):not(.selected) {
+    background-color: rgba(229, 107, 63, 0.18);
+  }
+
   /* Body no longer scrolls — the scroll moved up to .grid-wrap so the
      sticky .grid-head and the rendered rows share one set of columns. */
   .grid-body {
@@ -1230,6 +1278,18 @@
     font-weight: 600;
     font-size: 13px;
   }
+  .btn-secondary {
+    background: #fff;
+    color: var(--ink);
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    padding: 9px 16px;
+    cursor: pointer;
+    font-weight: 600;
+    font-size: 13px;
+    transition: background 0.15s;
+  }
+  .btn-secondary:hover { background: rgba(15, 23, 42, 0.04); }
 
   @media (max-width: 1200px) {
     .main { grid-template-columns: 1fr 380px; }
@@ -1411,13 +1471,6 @@
             <div class="name">War Room</div>
             <div class="meta">CAP · 24</div>
           </div>
-          <div class="gh-room" data-floor="25th" data-room="CEO Meeting Room">
-            <div class="ico" style="background:#FDEFE8;color:#D85A2E">
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="14" rx="2"/><path d="M3 18l5-5 4 3 5-5 4 4"/></svg>
-            </div>
-            <div class="name">CEO Meeting Room</div>
-            <div class="meta">CAP · 12</div>
-          </div>
           <div class="gh-room" data-floor="25th" data-room="WW3 Room">
             <div class="ico" style="background:#FEF3C7;color:#CA8A04">
               <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2l3 7h7l-5.5 4.5L18 21l-6-4.5L6 21l1.5-7.5L2 9h7z"/></svg>
@@ -1431,6 +1484,16 @@
             </div>
             <div class="name">Meeting Room 4</div>
             <div class="meta">CAP · 24</div>
+          </div>
+          <!-- CEO Meeting Room is the overflow room — visually muted with an
+               OVERFLOW badge. Last in 25th-floor order. -->
+          <div class="gh-room overflow-room" data-floor="25th" data-room="CEO Meeting Room">
+            <div class="ico" style="background:#FDEFE8;color:#D85A2E">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="14" rx="2"/><path d="M3 18l5-5 4 3 5-5 4 4"/></svg>
+            </div>
+            <div class="name">CEO Meeting Room</div>
+            <div class="meta">CAP · 12</div>
+            <div class="overflow-badge">OVERFLOW</div>
           </div>
           <div class="gh-room" data-floor="2nd" data-room="Meeting Room 1">
             <div class="ico" style="background:#E0E7FF;color:#4F46E5">
@@ -1570,6 +1633,23 @@
   </div>
 </div>
 
+<!-- Overflow confirmation modal — appears when the user attempts to book
+     the CEO Meeting Room (overflow) while peer rooms remain available in
+     the selected range. Reuses the same .modal-backdrop / .modal styles
+     as the booking-confirmation modal for visual consistency. -->
+<div class="modal-backdrop" id="overflowModal">
+  <div class="modal">
+    <h3>Other rooms are still available</h3>
+    <p>CEO Meeting Room is reserved as an <strong>overflow room</strong> — meant for time slots when every other meeting room is already booked. Some peer rooms are still free during your selected range:</p>
+    <div class="modal-list" id="overflowModalDetails"></div>
+    <p style="margin-top:14px;font-size:12.5px;color:var(--muted)">Are you sure you want to book CEO Meeting Room anyway?</p>
+    <div class="row-b">
+      <button class="btn-secondary" id="overflowCancel" type="button">Cancel</button>
+      <button class="btn-solid"     id="overflowConfirm" type="button">Book Anyway</button>
+    </div>
+  </div>
+</div>
+
 <script>
 /* =========================
    CONSTANTS & STATE
@@ -1580,19 +1660,28 @@
    filter — rooms on the non-selected floor have their columns hidden
    without affecting booking indices. */
 const ROOMS = [
-  'War Room', 'CEO Meeting Room', 'WW3 Room', 'Meeting Room 4',  // 25th floor
-  'Meeting Room 1', 'Mini Confe'                                  // 2nd floor
+  'War Room', 'WW3 Room', 'Meeting Room 4', 'CEO Meeting Room',   // 25th floor (CEO last)
+  'Meeting Room 1', 'Mini Confe'                                   // 2nd floor
 ];
 const ROOM_FLOOR = {
   'War Room':         '25th',
-  'CEO Meeting Room': '25th',
   'WW3 Room':         '25th',
   'Meeting Room 4':   '25th',
+  'CEO Meeting Room': '25th',
   'Meeting Room 1':   '2nd',
   'Mini Confe':       '2nd'
 };
 const FLOORS = ['25th', '2nd'];           // tab order, left to right
 let   currentFloor = '25th';              // default on load
+
+/* Overflow rooms — reserved as last-resort bookings. The column renders in
+   a visually muted state (striped + low opacity) and individual slot cells
+   only "light up" as normal-available when ALL non-overflow peers are
+   booked at the same slot index. Selecting an overflow cell when peers
+   are still free triggers a confirmation modal before the booking commits. */
+const OVERFLOW_ROOMS = ['CEO Meeting Room'];
+function isOverflowRoom(room) { return OVERFLOW_ROOMS.includes(room); }
+function nonOverflowRooms() { return ROOMS.filter(r => !isOverflowRoom(r)); }
 
 // Rooms that are visible in the grid but cannot accept new bookings.
 // The Apps Script backend enforces the same rule — this client-side block
@@ -1788,6 +1877,22 @@ function computeBlocks(roomBookings) {
   return byIdx;
 }
 
+/* allPeersBookedAtSlot — for the overflow room logic: returns true iff
+   every non-overflow room has a booking at the given slot index. When this
+   is true, the overflow room's cell at that slot is considered "freely
+   available" (no warning modal needed). Computed once per render() and
+   reused for every slot's class assignment. */
+function allPeersBookedAtSlot(roomBookings, idx) {
+  const slot = SLOTS[idx];
+  const peers = nonOverflowRooms();
+  for (let i = 0; i < peers.length; i++) {
+    const r = peers[i];
+    const cell = roomBookings && roomBookings[r] && roomBookings[r][slot];
+    if (!cell) return false;
+  }
+  return true;
+}
+
 function render() {
   const bookings = getBookings(currentDate);
   // pre-compute merged booking blocks per room
@@ -1798,6 +1903,10 @@ function render() {
 
   // Collected during the pass; measured + sized after the grid is in the DOM.
   const pendingMeasurements = [];
+
+  // Precompute per-slot "all peers booked" so we don't re-check every room
+  // inside the hot inner loop. Length = SLOTS.length.
+  const peerFullAt = SLOTS.map((_, idx) => allPeersBookedAtSlot(bookings, idx));
 
   SLOTS.forEach((slot, idx) => {
     const row = document.createElement('div');
@@ -1816,6 +1925,13 @@ function render() {
       // data-floor lets the CSS hide cells whose floor doesn't match the
       // active floor-tab without rebuilding the grid.
       cell.dataset.floor = ROOM_FLOOR[room] || '';
+      // Overflow rooms get a striped/muted visual; cells where all peers
+      // are also booked at this slot get .overflow-ready added so the
+      // dimming lifts (this is the "lit up" state from the spec).
+      if (isOverflowRoom(room)) {
+        cell.classList.add('overflow-room');
+        if (peerFullAt[idx]) cell.classList.add('overflow-ready');
+      }
 
       const bInfo = blockMap[room][idx]; // {block, isStart, isEnd} or undefined
       const lo = selection.startIdx !== null ? Math.min(selection.startIdx, selection.endIdx) : -1;
@@ -2379,6 +2495,48 @@ document.getElementById('applyManual').addEventListener('click', () => {
 /* =========================
    CONFIRM BOOKING
    ========================= */
+/* shouldShowOverflowConfirmation — gate for the Confirm Booking action.
+   Returns true only when:
+     1. The selected room is an overflow room (CEO Meeting Room), AND
+     2. At least one slot in the selected range has a non-overflow peer
+        room that is still free.
+   When true, the booking is paused and the overflow confirmation modal is
+   shown. If the user confirms, performBooking() runs as normal. */
+function shouldShowOverflowConfirmation() {
+  if (!selection.room || selection.startIdx === null) return false;
+  if (!isOverflowRoom(selection.room)) return false;
+  const bookings = getBookings(currentDate);
+  const lo = Math.min(selection.startIdx, selection.endIdx);
+  const hi = Math.max(selection.startIdx, selection.endIdx);
+  for (let i = lo; i <= hi; i++) {
+    if (!allPeersBookedAtSlot(bookings, i)) return true;
+  }
+  return false;
+}
+
+/* showOverflowModal — populates the available-alternatives list inside the
+   modal so users see exactly which peer rooms they're skipping past. */
+function showOverflowModal() {
+  const bookings = getBookings(currentDate);
+  const lo = Math.min(selection.startIdx, selection.endIdx);
+  const hi = Math.max(selection.startIdx, selection.endIdx);
+  const free = new Set();
+  for (let i = lo; i <= hi; i++) {
+    const slot = SLOTS[i];
+    nonOverflowRooms().forEach(r => {
+      if (!(bookings[r] && bookings[r][slot])) free.add(r);
+    });
+  }
+  const list = Array.from(free);
+  const detail = document.getElementById('overflowModalDetails');
+  if (detail) {
+    detail.innerHTML = list.length
+      ? list.map(r => '· ' + r).join('<br>')
+      : '<em style="color:var(--muted)">No specific alternatives found</em>';
+  }
+  document.getElementById('overflowModal').classList.add('show');
+}
+
 document.getElementById('confirmBtn').addEventListener('click', async () => {
   const nameInput = document.getElementById('userName');
   const name = nameInput.value.trim();
@@ -2389,13 +2547,26 @@ document.getElementById('confirmBtn').addEventListener('click', async () => {
     setTimeout(() => nameInput.classList.remove('error'), 1200);
     return;
   }
-  const desc = document.getElementById('desc').value.trim();
-  const category = document.getElementById('category').value.trim(); // '' means Others
   if (!selection.room || selection.startIdx === null) return;
   if (isRoomBlocked(selection.room)) {
     showToast('🚧 ' + selection.room + ' is under construction — bookings disabled');
     return;
   }
+  // Overflow gate — if applicable, defer to the modal's confirm button.
+  if (shouldShowOverflowConfirmation()) {
+    showOverflowModal();
+    return;
+  }
+  await performBooking();
+});
+
+async function performBooking() {
+  const nameInput = document.getElementById('userName');
+  const name = nameInput.value.trim();
+  // Defensive: shouldn't reach here without a name, but bail if state changed.
+  if (!name || !selection.room || selection.startIdx === null) return;
+  const desc = document.getElementById('desc').value.trim();
+  const category = document.getElementById('category').value.trim(); // '' means Others
 
   const bookings = getBookings(currentDate);
   const room = selection.room;
@@ -2456,9 +2627,20 @@ document.getElementById('confirmBtn').addEventListener('click', async () => {
       render();
     }
   }
-});
+}
+
 document.getElementById('modalOk').addEventListener('click', () => {
   document.getElementById('modal').classList.remove('show');
+});
+
+/* Overflow modal wiring — Cancel just closes; "Book Anyway" closes and
+   immediately runs the same performBooking() path the normal flow uses. */
+document.getElementById('overflowCancel').addEventListener('click', () => {
+  document.getElementById('overflowModal').classList.remove('show');
+});
+document.getElementById('overflowConfirm').addEventListener('click', async () => {
+  document.getElementById('overflowModal').classList.remove('show');
+  await performBooking();
 });
 
 /* =========================
